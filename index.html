@@ -1501,6 +1501,15 @@
                 </label>
             </div>
             
+            <div class="theme-toggle" id="notification-toggle-container">
+                <label>
+                    <input type="checkbox" id="notification-toggle">
+                    <span>Уведомления в браузере</span>
+                </label>
+            </div>
+            <div id="notification-status" style="font-size: 0.8rem; color: var(--text-light); margin-bottom: 10px; display: none;"></div>
+            <button class="modal-btn modal-btn-secondary" id="test-notification-btn" style="width: 100%; margin-bottom: 15px; display: none;">Проверить уведомления</button>
+            
             <div class="emoji-selector">
                 <label>Ваш статус:</label>
                 <div class="emoji-options" id="emoji-options">
@@ -1723,6 +1732,9 @@
         const usersTab = document.getElementById('users-tab');
         const channelsTab = document.getElementById('channels-tab');
         const themeToggle = document.getElementById('theme-toggle');
+        const notificationToggle = document.getElementById('notification-toggle');
+        const notificationStatus = document.getElementById('notification-status');
+        const testNotificationBtn = document.getElementById('test-notification-btn');
         const emojiOptions = document.getElementById('emoji-options');
         const editMessageModal = document.getElementById('edit-message-modal');
         const editMessageText = document.getElementById('edit-message-text');
@@ -1787,6 +1799,8 @@
         let currentChannel = null;
         let subscribedChannels = [];
         let lastMessageTimestamp = 0;
+        let backgroundCheckIntervals = [];
+        let notifiedMessageIds = new Set();
         
         // Функция показа уведомлений
         function showNotification(message) {
@@ -1809,17 +1823,20 @@
             setupEventListeners();
             setupNetworkStatus();
             
-            // Запрашиваем разрешение на уведомления
-            requestNotificationPermission();
-            
             // Регистрируем Service Worker для фоновых уведомлений
             registerServiceWorker();
+            
+            // Настраиваем автоматический запрос разрешения на уведомления
+            setupAutoNotificationRequest();
             
             // Проверяем сохраненную тему
             if (localStorage.getItem('dark_theme') === 'true') {
                 document.body.classList.add('dark-theme');
                 themeToggle.checked = true;
             }
+            
+            // Инициализируем настройки уведомлений
+            initializeNotificationSettings();
             
             // Проверяем, есть ли сохраненный пользователь
             const savedUser = localStorage.getItem('messenger_user');
@@ -1885,21 +1902,76 @@
         function requestNotificationPermission() {
             if (!("Notification" in window)) {
                 console.log("Браузер не поддерживает уведомления");
+                return Promise.resolve("not_supported");
+            }
+            
+            // Если уже разрешено - ничего не делаем
+            if (Notification.permission === "granted") {
+                return Promise.resolve("granted");
+            }
+            
+            // Если запрещено - не запрашиваем
+            if (Notification.permission === "denied") {
+                return Promise.resolve("denied");
+            }
+            
+            // Запрашиваем разрешение
+            return Notification.requestPermission();
+        }
+        
+        // Автоматический запрос разрешения на уведомления при первом взаимодействии
+        function setupAutoNotificationRequest() {
+            if (!("Notification" in window)) return;
+            if (Notification.permission !== "default") return;
+            
+            const autoRequestPermission = () => {
+                // Проверяем, не запрашивали ли уже
+                const alreadyRequested = sessionStorage.getItem('notification_requested');
+                if (alreadyRequested) return;
+                
+                Notification.requestPermission().then(permission => {
+                    sessionStorage.setItem('notification_requested', 'true');
+                    if (permission === "granted") {
+                        console.log("Разрешение на уведомления получено автоматически");
+                        localStorage.setItem('notifications_enabled', 'true');
+                        showNotification('Уведомления включены!');
+                    }
+                });
+            };
+            
+            // Запрашиваем при первом клике или нажатии клавиши
+            document.addEventListener('click', autoRequestPermission, { once: true });
+            document.addEventListener('keypress', autoRequestPermission, { once: true });
+        }
+        
+        // Инициализация настроек уведомлений при загрузке
+        function initializeNotificationSettings() {
+            if (!("Notification" in window)) {
+                localStorage.setItem('notifications_enabled', 'false');
                 return;
             }
             
-            if (Notification.permission === "default") {
-                Notification.requestPermission().then(permission => {
-                    if (permission === "granted") {
-                        console.log("Разрешение на уведомления получено");
-                    }
-                });
+            // Если разрешение получено, но настройка еще не сохранена - включаем по умолчанию
+            if (Notification.permission === "granted") {
+                if (localStorage.getItem('notifications_enabled') === null) {
+                    localStorage.setItem('notifications_enabled', 'true');
+                }
+            } else if (Notification.permission === "denied") {
+                localStorage.setItem('notifications_enabled', 'false');
             }
         }
         
         // Регистрация Service Worker
         function registerServiceWorker() {
+            // Service Worker не работает на file:// протоколе (локальные файлы)
+            // Он требует HTTPS или localhost
             if ('serviceWorker' in navigator) {
+                // Проверяем, что страница не открыта с file:// протокола
+                if (window.location.protocol === 'file:') {
+                    console.log('Service Worker не поддерживается при открытии файла локально (file://). Используйте локальный сервер (Live Server) или разместите на хостинге.');
+                    return;
+                }
+                
                 const swCode = `
                     self.addEventListener('push', function(event) {
                         const data = event.data.json();
@@ -2153,6 +2225,8 @@
             channelIconUrlInput.addEventListener('input', updateChannelIconPreview);
             
             themeToggle.addEventListener('change', toggleTheme);
+            notificationToggle.addEventListener('change', toggleNotifications);
+            testNotificationBtn.addEventListener('click', testNotification);
             
             emojiOptions.addEventListener('click', (e) => {
                 if (e.target.classList.contains('emoji-option')) {
@@ -2209,6 +2283,95 @@
         
         function toggleSettingsMenu() {
             settingsMenu.classList.toggle('active');
+            updateNotificationToggleState();
+        }
+        
+        function updateNotificationToggleState() {
+            if (!("Notification" in window)) {
+                notificationToggle.disabled = true;
+                notificationStatus.style.display = 'block';
+                notificationStatus.textContent = 'Ваш браузер не поддерживает уведомления';
+                testNotificationBtn.style.display = 'none';
+                return;
+            }
+            
+            // Проверяем сохраненные настройки
+            const notificationsEnabled = localStorage.getItem('notifications_enabled') === 'true';
+            
+            if (Notification.permission === "granted") {
+                notificationToggle.checked = notificationsEnabled;
+                notificationToggle.disabled = false;
+                notificationStatus.style.display = 'none';
+                testNotificationBtn.style.display = notificationsEnabled ? 'block' : 'none';
+            } else if (Notification.permission === "denied") {
+                notificationToggle.checked = false;
+                notificationToggle.disabled = true;
+                notificationStatus.style.display = 'block';
+                notificationStatus.textContent = 'Уведомления заблокированы в настройках браузера. Чтобы включить, измените настройки сайта в браузере.';
+                testNotificationBtn.style.display = 'none';
+                localStorage.setItem('notifications_enabled', 'false');
+            } else {
+                notificationToggle.checked = false;
+                notificationToggle.disabled = false;
+                notificationStatus.style.display = 'none';
+                testNotificationBtn.style.display = 'none';
+            }
+        }
+        
+        function testNotification() {
+            if (!("Notification" in window)) {
+                showNotification('Ваш браузер не поддерживает уведомления');
+                return;
+            }
+            
+            if (Notification.permission !== "granted") {
+                // Запрашиваем разрешение если еще не получено
+                Notification.requestPermission().then(permission => {
+                    if (permission === "granted") {
+                        localStorage.setItem('notifications_enabled', 'true');
+                        showBrowserNotification('Twin Messenger', 'Это тестовое уведомление! Уведомления работают корректно.');
+                        showNotification('Тестовое уведомление отправлено');
+                        updateNotificationToggleState();
+                    } else {
+                        showNotification('Разрешение на уведомления не получено');
+                    }
+                });
+            } else {
+                showBrowserNotification('Twin Messenger', 'Это тестовое уведомление! Уведомления работают корректно.');
+                showNotification('Тестовое уведомление отправлено');
+            }
+        }
+        
+        function toggleNotifications() {
+            if (notificationToggle.checked) {
+                // Запрашиваем разрешение
+                if ("Notification" in window) {
+                    if (Notification.permission === "default") {
+                        Notification.requestPermission().then(permission => {
+                            if (permission === "granted") {
+                                console.log("Разрешение на уведомления получено");
+                                localStorage.setItem('notifications_enabled', 'true');
+                                showNotification('Уведомления включены!');
+                            } else {
+                                notificationToggle.checked = false;
+                                localStorage.setItem('notifications_enabled', 'false');
+                                updateNotificationToggleState();
+                            }
+                        });
+                    } else if (Notification.permission === "granted") {
+                        localStorage.setItem('notifications_enabled', 'true');
+                        showNotification('Уведомления включены!');
+                    } else if (Notification.permission === "denied") {
+                        notificationToggle.checked = false;
+                        localStorage.setItem('notifications_enabled', 'false');
+                        updateNotificationToggleState();
+                    }
+                }
+            } else {
+                localStorage.setItem('notifications_enabled', 'false');
+                showNotification('Уведомления отключены');
+            }
+            updateNotificationToggleState();
         }
         
         function setupNetworkStatus() {
@@ -2226,81 +2389,103 @@
         }
         
         function startBackgroundChecks() {
-            setInterval(checkForNewMessages, 5000);
-            setInterval(checkForGroupInvites, 10000);
-            setInterval(checkForChannelUpdates, 15000);
+            // Clear any existing intervals first to prevent duplicates
+            backgroundCheckIntervals.forEach(intervalId => clearInterval(intervalId));
+            backgroundCheckIntervals = [];
+            
+            // Clear notified message IDs when restarting checks
+            notifiedMessageIds.clear();
+            
+            backgroundCheckIntervals.push(setInterval(checkForNewMessages, 5000));
+            backgroundCheckIntervals.push(setInterval(checkForGroupInvites, 10000));
+            backgroundCheckIntervals.push(setInterval(checkForChannelUpdates, 15000));
         }
         
         async function checkForNewMessages() {
-    if (!currentUser || !isOnline) return;
-    
-    try {
-        const snapshot = await database.ref('messages').once('value');
-        const allChats = snapshot.val();
-        if (!allChats) return;
-        
-        Object.keys(allChats).forEach(chatId => {
-            if (chatId.includes(currentUser) || (chatId.startsWith('group_') && groups.some(g => g.id === chatId)) || 
-                (chatId.startsWith('channel_') && subscribedChannels.includes(chatId))) {
-                const messages = allChats[chatId];
-                const messagesArray = Object.keys(messages).map(key => ({
-                    id: key,
-                    ...messages[key]
-                }));
+            if (!currentUser || !isOnline) return;
+            
+            try {
+                const snapshot = await database.ref('messages').once('value');
+                const allChats = snapshot.val();
+                if (!allChats) return;
                 
-                const latestMessage = messagesArray
-                    .filter(msg => msg.text && msg.sender && msg.timestamp)
-                    .sort((a, b) => b.timestamp - a.timestamp)[0];
-                
-                // Проверяем, есть ли новое сообщение
-                if (latestMessage && latestMessage.timestamp > lastMessageTimestamp && 
-                    latestMessage.sender !== currentUser) {
-                    
-                    let senderName = latestMessage.sender;
-                    let chatName = '';
-                    let notificationType = 'message';
-                    
-                    if (chatId.startsWith('group_')) {
-                        const group = groups.find(g => g.id === chatId);
-                        if (group) {
-                            chatName = group.name;
-                            senderName = `${group.name}`;
-                            notificationType = 'group_message';
+                Object.keys(allChats).forEach(chatId => {
+                    if (chatId.includes(currentUser) || (chatId.startsWith('group_') && groups.some(g => g.id === chatId)) || 
+                        (chatId.startsWith('channel_') && subscribedChannels.includes(chatId))) {
+                        const messages = allChats[chatId];
+                        const messagesArray = Object.keys(messages).map(key => ({
+                            id: key,
+                            ...messages[key]
+                        }));
+                        
+                        const latestMessage = messagesArray
+                            .filter(msg => msg.text && msg.sender && msg.timestamp)
+                            .sort((a, b) => b.timestamp - a.timestamp)[0];
+                        
+                        // Проверяем, есть ли новое сообщение
+                        if (!latestMessage) return;
+                        
+                        // Check if we've already notified about this specific message
+                        const messageId = latestMessage.id;
+                        if (latestMessage.timestamp > lastMessageTimestamp && 
+                            latestMessage.sender !== currentUser && !notifiedMessageIds.has(messageId)) {
+                            
+                            // Mark this message as notified
+                            notifiedMessageIds.add(messageId);
+                            
+                            // Limit the size of the set to prevent memory leaks
+                            if (notifiedMessageIds.size > 100) {
+                                const firstId = notifiedMessageIds.values().next().value;
+                                notifiedMessageIds.delete(firstId);
+                            }
+                            
+                            let senderName = latestMessage.sender;
+                            let chatName = '';
+                            let notificationType = 'message';
+                            
+                            if (chatId.startsWith('group_')) {
+                                const group = groups.find(g => g.id === chatId);
+                                if (group) {
+                                    chatName = group.name;
+                                    senderName = `${group.name}`;
+                                    notificationType = 'group_message';
+                                }
+                            } else if (chatId.startsWith('channel_')) {
+                                const channel = channels.find(c => c.id === chatId);
+                                if (channel) {
+                                    chatName = channel.name;
+                                    senderName = `${channel.name}`;
+                                    notificationType = 'channel_message';
+                                }
+                            } else {
+                                // Личный чат
+                                chatName = latestMessage.sender;
+                            }
+                            
+                            // Показываем браузерное уведомление ВСЕГДА, если:
+                            // 1. Вкладка не активна (document.hidden) ИЛИ
+                            // 2. Чат не открыт (currentChat !== chatId)
+                            const shouldNotify = document.hidden || currentChat !== chatId;
+                            
+                            if (shouldNotify) {
+                                showBrowserNotification(
+                                    `Новое сообщение от ${chatName}`,
+                                    latestMessage.text
+                                );
+                            }
+                            
+                            // Создаем уведомление в Firebase для гарантированной доставки
+                            createFirebaseNotification(latestMessage, chatName, notificationType);
+                            
+                            // Обновляем таймстамп
+                            lastMessageTimestamp = latestMessage.timestamp;
                         }
-                    } else if (chatId.startsWith('channel_')) {
-                        const channel = channels.find(c => c.id === chatId);
-                        if (channel) {
-                            chatName = channel.name;
-                            senderName = `${channel.name}`;
-                            notificationType = 'channel_message';
-                        }
-                    } else {
-                        // Личный чат
-                        chatName = latestMessage.sender;
                     }
-                    
-                    // Показываем уведомление в интерфейсе
-                    showNotification(`📨 ${senderName}: ${truncate(latestMessage.text, 40)}`);
-                    
-                    // Показываем браузерное уведомление, если вкладка не активна или сайт закрыт
-                    showBrowserNotification(
-                        `Новое сообщение от ${chatName}`,
-                        latestMessage.text
-                    );
-                    
-                    // Создаем уведомление в Firebase для гарантированной доставки
-                    // (даже если пользователь закрыл сайт до получения уведомления)
-                    createFirebaseNotification(latestMessage, chatName, notificationType);
-                    
-                    // Обновляем таймстамп
-                    lastMessageTimestamp = latestMessage.timestamp;
-                }
+                });
+            } catch (error) {
+                console.error('Ошибка при проверке новых сообщений:', error);
             }
-        });
-    } catch (error) {
-        console.error('Ошибка при проверке новых сообщений:', error);
-    }
-}
+        }
 
 // Создание уведомления в Firebase для гарантированной доставки
 async function createFirebaseNotification(message, chatName, type) {
@@ -2335,7 +2520,7 @@ async function createFirebaseNotification(message, chatName, type) {
                     if (group.participants && group.participants.includes(currentUser) && 
                         !groups.some(g => g.id === groupId) && document.hidden) {
                         
-                        showNotification(`Вас добавили в группу "${group.name}"`);
+                        showBrowserNotification('Twin Messenger', `Вас добавили в группу "${group.name}"`);
                         
                         loadGroups();
                     }
@@ -2366,10 +2551,25 @@ async function createFirebaseNotification(message, chatName, type) {
                             .filter(msg => msg.text && msg.sender && msg.timestamp)
                             .sort((a, b) => b.timestamp - a.timestamp)[0];
                         
-                        if (latestMessage && latestMessage.timestamp > lastMessageTimestamp && 
-                            latestMessage.sender !== currentUser && document.hidden) {
+                        if (!latestMessage) return;
+                        
+                        const messageId = latestMessage.id;
+                        if (latestMessage.timestamp > lastMessageTimestamp && 
+                            latestMessage.sender !== currentUser && document.hidden && !notifiedMessageIds.has(messageId)) {
                             
-                            showNotification(`Новое сообщение в канале "${channel.name}": ${truncate(latestMessage.text, 30)}`);
+                            // Mark this message as notified
+                            notifiedMessageIds.add(messageId);
+                            
+                            // Limit the size of the set to prevent memory leaks
+                            if (notifiedMessageIds.size > 100) {
+                                const firstId = notifiedMessageIds.values().next().value;
+                                notifiedMessageIds.delete(firstId);
+                            }
+                            
+                            showBrowserNotification(
+                                `Новое сообщение в канале "${channel.name}"`,
+                                latestMessage.text
+                            );
                             
                             lastMessageTimestamp = latestMessage.timestamp;
                         }
@@ -3958,44 +4158,44 @@ function showBrowserNotification(title, message) {
         return;
     }
     
+    // Проверяем, разрешены ли уведомления
+    if (Notification.permission !== "granted") {
+        return;
+    }
+    
+    // Проверяем, включены ли уведомления в настройках приложения
+    if (localStorage.getItem('notifications_enabled') !== 'true') {
+        return;
+    }
+    
     const notificationOptions = {
         body: message,
         icon: "https://cdn.jsdelivr.net/npm/emoji-datasource-apple@7.0.2/img/apple/64/1f604.png",
         badge: "https://cdn.jsdelivr.net/npm/emoji-datasource-apple@7.0.2/img/apple/64/1f604.png",
-        tag: 'twin-message',
+        tag: 'twin-message-' + Date.now(),
         requireInteraction: false,
         silent: false
     };
     
-    // Проверяем, разрешены ли уведомления
-    if (Notification.permission === "granted") {
-        // Если разрешены - показываем уведомление
-        if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
-            // Используем Service Worker для показа уведомления (работает даже когда сайт закрыт)
-            navigator.serviceWorker.ready.then(registration => {
-                registration.showNotification(title, notificationOptions);
-            });
-        } else {
-            // Fallback - обычное уведомление
-            new Notification(title, notificationOptions);
-        }
+    // Показываем уведомление
+    try {
+        const notification = new Notification(title, notificationOptions);
+        
+        // Обработчик клика по уведомлению
+        notification.onclick = function() {
+            window.focus();
+            notification.close();
+        };
+        
+        // Автоматически закрываем уведомление через 8 секунд
+        setTimeout(() => {
+            notification.close();
+        }, 8000);
         
         // Воспроизводим звук уведомления
         playNotificationSound();
-    } else if (Notification.permission !== "denied") {
-        // Если еще не спрашивали - запрашиваем разрешение
-        Notification.requestPermission().then(permission => {
-            if (permission === "granted") {
-                if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
-                    navigator.serviceWorker.ready.then(registration => {
-                        registration.showNotification(title, notificationOptions);
-                    });
-                } else {
-                    new Notification(title, notificationOptions);
-                }
-                playNotificationSound();
-            }
-        });
+    } catch (error) {
+        console.log('Ошибка показа уведомления:', error);
     }
 }
 
