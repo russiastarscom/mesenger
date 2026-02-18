@@ -6332,6 +6332,18 @@ function playNotificationSound() {
                     showNotification('Звонок отклонен');
                 }
                 
+                // Если звонок принят - инициатор создает offer
+                if (callData.status === 'accepted' && isCallInitiator && peerConnection) {
+                    try {
+                        callStatus.textContent = 'Соединение...';
+                        const offer = await peerConnection.createOffer();
+                        await peerConnection.setLocalDescription(offer);
+                        await sendSignal({ type: 'offer', sdp: offer.sdp });
+                    } catch (error) {
+                        console.error('Ошибка создания offer:', error);
+                    }
+                }
+                
                 // Обработка WebRTC сигналинга
                 if (callData.signal && currentCall) {
                     await handleSignal(callData.signal);
@@ -6374,6 +6386,12 @@ function playNotificationSound() {
                 // Показываем UI звонка
                 showCallUI(currentChat, type);
                 callStatus.textContent = 'Вызов...';
+                
+                // Инициализируем WebRTC сразу (для инициатора)
+                await initializePeerConnection();
+                
+                // Получаем медиапоток
+                await getLocalStream(type);
                 
                 // Создаем запись о звонке в Firebase
                 await database.ref('calls/' + encodeURIComponent(currentChat)).set({
@@ -6437,18 +6455,14 @@ function playNotificationSound() {
             showCallUI(currentCall.from, currentCall.type);
             callStatus.textContent = 'Соединение...';
             
-            // Инициализируем WebRTC
+            // Инициализируем WebRTC (но не создаем offer - ждем от инициатора)
             await initializePeerConnection();
             
             // Получаем медиапоток
             await getLocalStream(currentCall.type);
             
-            // Создаем offer
-            const offer = await peerConnection.createOffer();
-            await peerConnection.setLocalDescription(offer);
-            
-            // Отправляем offer
-            await sendSignal({ type: 'offer', sdp: offer.sdp });
+            // Отвечающий ждет offer от инициатора
+            // offer будет обработан в handleSignal
         }
         
         // Отклонить звонок
@@ -6526,11 +6540,13 @@ function playNotificationSound() {
         
         // Инициализировать PeerConnection
         async function initializePeerConnection() {
+            console.log('Инициализация PeerConnection');
             peerConnection = new RTCPeerConnection(iceServers);
             
             // Обработка ICE кандидатов
             peerConnection.onicecandidate = (event) => {
                 if (event.candidate) {
+                    console.log('Новый ICE candidate');
                     sendSignal({
                         type: 'ice-candidate',
                         candidate: event.candidate
@@ -6540,6 +6556,7 @@ function playNotificationSound() {
             
             // Обработка входящего медиапотока
             peerConnection.ontrack = (event) => {
+                console.log('Получен remote track');
                 remoteStream = event.streams[0];
                 remoteVideo.srcObject = remoteStream;
                 callStatus.textContent = 'Разговор';
@@ -6555,6 +6572,16 @@ function playNotificationSound() {
                     endCall();
                     showNotification('Соединение разорвано');
                 }
+            };
+            
+            // Обработка изменения состояния ICE
+            peerConnection.oniceconnectionstatechange = () => {
+                console.log('ICE состояние:', peerConnection.iceConnectionState);
+            };
+            
+            // Обработка сигналинга
+            peerConnection.onsignalingstatechange = () => {
+                console.log('Сигналинг состояние:', peerConnection.signalingState);
             };
         }
         
@@ -6598,15 +6625,16 @@ function playNotificationSound() {
         // Обработать входящий сигнал
         async function handleSignal(signal) {
             if (!peerConnection) {
-                await initializePeerConnection();
+                console.log('PeerConnection не инициализирован');
+                return;
             }
+            
+            console.log('Получен сигнал:', signal.type);
             
             try {
                 switch (signal.type) {
                     case 'offer':
-                        // Получаем медиапоток перед установкой remote description
-                        await getLocalStream(currentCallType);
-                        
+                        console.log('Обработка offer');
                         await peerConnection.setRemoteDescription(new RTCSessionDescription({
                             type: 'offer',
                             sdp: signal.sdp
@@ -6616,16 +6644,20 @@ function playNotificationSound() {
                         await peerConnection.setLocalDescription(answer);
                         
                         await sendSignal({ type: 'answer', sdp: answer.sdp });
+                        console.log('Answer отправлен');
                         break;
                         
                     case 'answer':
+                        console.log('Обработка answer');
                         await peerConnection.setRemoteDescription(new RTCSessionDescription({
                             type: 'answer',
                             sdp: signal.sdp
                         }));
+                        console.log('Remote description установлена');
                         break;
                         
                     case 'ice-candidate':
+                        console.log('Обработка ICE candidate');
                         await peerConnection.addIceCandidate(new RTCIceCandidate(signal.candidate));
                         break;
                 }
