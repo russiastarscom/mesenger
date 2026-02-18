@@ -1966,9 +1966,9 @@
             // Service Worker не работает на file:// протоколе (локальные файлы)
             // Он требует HTTPS или localhost
             if ('serviceWorker' in navigator) {
-                // Проверяем, что страница не открыта с file:// протокола
-                if (window.location.protocol === 'file:') {
-                    console.log('Service Worker не поддерживается при открытии файла локально (file://). Используйте локальный сервер (Live Server) или разместите на хостинге.');
+                // Проверяем, что страница не открыта с file:// протокола или blob:// протокола
+                if (window.location.protocol === 'file:' || window.location.protocol === 'blob:') {
+                    console.log('Service Worker не поддерживается при открытии файла локально (file://) или через blob:// протокол. Используйте локальный сервер (Live Server) или разместите на хостинге.');
                     return;
                 }
                 
@@ -2402,12 +2402,26 @@
         }
         
         async function checkForNewMessages() {
-            if (!currentUser || !isOnline) return;
+            if (!currentUser || !isOnline) {
+                console.log('[CheckMessages] Skipping: no user or offline');
+                return;
+            }
             
             try {
+                console.log('[CheckMessages] Checking for new messages...');
                 const snapshot = await database.ref('messages').once('value');
                 const allChats = snapshot.val();
-                if (!allChats) return;
+                if (!allChats) {
+                    console.log('[CheckMessages] No chats found');
+                    return;
+                }
+                
+                const now = Date.now();
+                // Initialize lastMessageTimestamp on first run to current time to avoid showing old messages
+                if (lastMessageTimestamp === 0) {
+                    lastMessageTimestamp = now - 5000; // Allow messages from last 5 seconds
+                    console.log('[CheckMessages] Initialized timestamp:', lastMessageTimestamp);
+                }
                 
                 Object.keys(allChats).forEach(chatId => {
                     if (chatId.includes(currentUser) || (chatId.startsWith('group_') && groups.some(g => g.id === chatId)) || 
@@ -2427,8 +2441,12 @@
                         
                         // Check if we've already notified about this specific message
                         const messageId = latestMessage.id;
-                        if (latestMessage.timestamp > lastMessageTimestamp && 
-                            latestMessage.sender !== currentUser && !notifiedMessageIds.has(messageId)) {
+                        const isNewMessage = latestMessage.timestamp > lastMessageTimestamp;
+                        const isNotFromMe = latestMessage.sender !== currentUser;
+                        const notAlreadyNotified = !notifiedMessageIds.has(messageId);
+                        
+                        if (isNewMessage && isNotFromMe && notAlreadyNotified) {
+                            console.log('[CheckMessages] New message found:', latestMessage.text, 'from:', latestMessage.sender);
                             
                             // Mark this message as notified
                             notifiedMessageIds.add(messageId);
@@ -2466,6 +2484,7 @@
                             // 1. Вкладка не активна (document.hidden) ИЛИ
                             // 2. Чат не открыт (currentChat !== chatId)
                             const shouldNotify = document.hidden || currentChat !== chatId;
+                            console.log('[CheckMessages] Should notify:', shouldNotify, 'hidden:', document.hidden, 'currentChat:', currentChat, 'chatId:', chatId);
                             
                             if (shouldNotify) {
                                 showBrowserNotification(
@@ -2483,7 +2502,7 @@
                     }
                 });
             } catch (error) {
-                console.error('Ошибка при проверке новых сообщений:', error);
+                console.error('[CheckMessages] Error:', error);
             }
         }
 
@@ -2517,8 +2536,11 @@ async function createFirebaseNotification(message, chatName, type) {
                 Object.keys(allGroups).forEach(groupId => {
                     const group = allGroups[groupId];
                     
+                    // Notify if added to new group and (tab hidden OR not currently viewing that group)
+                    const shouldNotify = document.hidden || currentChat !== groupId;
+                    
                     if (group.participants && group.participants.includes(currentUser) && 
-                        !groups.some(g => g.id === groupId) && document.hidden) {
+                        !groups.some(g => g.id === groupId) && shouldNotify) {
                         
                         showBrowserNotification('Twin Messenger', `Вас добавили в группу "${group.name}"`);
                         
@@ -2554,8 +2576,13 @@ async function createFirebaseNotification(message, chatName, type) {
                         if (!latestMessage) return;
                         
                         const messageId = latestMessage.id;
-                        if (latestMessage.timestamp > lastMessageTimestamp && 
-                            latestMessage.sender !== currentUser && document.hidden && !notifiedMessageIds.has(messageId)) {
+                        const isNewMessage = latestMessage.timestamp > lastMessageTimestamp;
+                        const isNotFromMe = latestMessage.sender !== currentUser;
+                        const notAlreadyNotified = !notifiedMessageIds.has(messageId);
+                        // Notify if tab hidden OR different channel is open
+                        const shouldNotify = document.hidden || currentChat !== channelId;
+                        
+                        if (isNewMessage && isNotFromMe && notAlreadyNotified && shouldNotify) {
                             
                             // Mark this message as notified
                             notifiedMessageIds.add(messageId);
@@ -3021,7 +3048,7 @@ async function createFirebaseNotification(message, chatName, type) {
                 
                 let avatar, name, emoji, username;
                 if (chat.type === 'user') {
-                    const displayName = chat.name || (chat.userData ? chat.userData.name : chat.user);
+                    const displayName = chat.name || (chat.userData ? chat.userData.name : chat.user) || 'Unknown';
                     const displayEmoji = chat.emoji || (chat.userData ? chat.userData.emoji : '😊');
                     const displayUsername = chat.user || (chat.userData ? chat.userData.username : '');
                     avatar = displayName.charAt(0).toUpperCase();
@@ -4154,19 +4181,29 @@ function trackUserStatus() {
 function showBrowserNotification(title, message) {
     // Проверяем, поддерживает ли браузер уведомления
     if (!("Notification" in window)) {
-        console.log("Браузер не поддерживает уведомления");
+        console.log("[Notification] Browser does not support notifications");
         return;
     }
     
     // Проверяем, разрешены ли уведомления
     if (Notification.permission !== "granted") {
+        console.log("[Notification] Permission not granted:", Notification.permission);
         return;
     }
     
     // Проверяем, включены ли уведомления в настройках приложения
-    if (localStorage.getItem('notifications_enabled') !== 'true') {
+    const notificationsEnabled = localStorage.getItem('notifications_enabled');
+    if (notificationsEnabled !== 'true' && notificationsEnabled !== null) {
+        console.log("[Notification] Notifications disabled in app settings");
         return;
     }
+    
+    // Если настройка не установлена, но разрешение есть - включаем по умолчанию
+    if (notificationsEnabled === null) {
+        localStorage.setItem('notifications_enabled', 'true');
+    }
+    
+    console.log("[Notification] Showing notification:", title, message);
     
     const notificationOptions = {
         body: message,
@@ -4174,17 +4211,24 @@ function showBrowserNotification(title, message) {
         badge: "https://cdn.jsdelivr.net/npm/emoji-datasource-apple@7.0.2/img/apple/64/1f604.png",
         tag: 'twin-message-' + Date.now(),
         requireInteraction: false,
-        silent: false
+        silent: false,
+        renotify: true
     };
     
     // Показываем уведомление
     try {
         const notification = new Notification(title, notificationOptions);
+        console.log("[Notification] Notification created successfully");
         
         // Обработчик клика по уведомлению
         notification.onclick = function() {
             window.focus();
             notification.close();
+        };
+        
+        // Обработчик ошибок
+        notification.onerror = function(err) {
+            console.log("[Notification] Error showing notification:", err);
         };
         
         // Автоматически закрываем уведомление через 8 секунд
@@ -4195,9 +4239,25 @@ function showBrowserNotification(title, message) {
         // Воспроизводим звук уведомления
         playNotificationSound();
     } catch (error) {
-        console.log('Ошибка показа уведомления:', error);
+        console.log('[Notification] Error creating notification:', error);
     }
 }
+
+// Debug function to test notifications manually
+function debugNotification() {
+    console.log('[Debug] Testing notification system...');
+    console.log('[Debug] Notification.permission:', Notification.permission);
+    console.log('[Debug] notifications_enabled:', localStorage.getItem('notifications_enabled'));
+    console.log('[Debug] document.hidden:', document.hidden);
+    console.log('[Debug] currentUser:', currentUser);
+    console.log('[Debug] currentChat:', currentChat);
+    
+    // Force show a test notification
+    showBrowserNotification('Test Notification', 'This is a forced test notification');
+}
+
+// Make it available globally for debugging
+window.debugNotification = debugNotification;
 
 // Функция для воспроизведения звука уведомления
 function playNotificationSound() {
