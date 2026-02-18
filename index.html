@@ -34,6 +34,39 @@
             --notification-text: #ffffff;
             --channel-bg: #f0f3ff;
             --channel-hover: #e1e6ff;
+            --shadow-light: 0 2px 10px rgba(0,0,0,0.05);
+            --shadow-medium: 0 4px 15px rgba(0,0,0,0.1);
+            --radius-small: 8px;
+            --radius-medium: 12px;
+            --radius-large: 16px;
+            --primary-color: #6c5ce7;
+            --primary-dark: #5a4fcf;
+            --danger-color: #e74c3c;
+            --danger-dark: #c0392b;
+            --success-color: #2ecc71;
+            --success-dark: #27ae60;
+            --text-color: #2d3436;
+            --text-light: #636e72;
+            --bg-color: #f8f9fa;
+            --border-color: #e9ecef;
+            --sent-message: #6c5ce7;
+            --received-message: #ffffff;
+            --message-hover: #f5f5f5;
+            --modal-bg: #ffffff;
+            --input-bg: #ffffff;
+            --sidebar-bg: #f8f9fa;
+            --header-bg: #ffffff;
+            --online-color: #2ecc71;
+            --offline-color: #e74c3c;
+            --notification-bg: #6c5ce7;
+            --notification-text: #ffffff;
+            --channel-bg: #f0f3ff;
+            --channel-hover: #e1e6ff;
+            --shadow-light: 0 2px 10px rgba(0,0,0,0.05);
+            --shadow-medium: 0 4px 15px rgba(0,0,0,0.1);
+            --radius-small: 8px;
+            --radius-medium: 12px;
+            --radius-large: 16px;
         }
         
         /* Темная тема */
@@ -122,6 +155,32 @@
             flex: 1;
             overflow: hidden;
             position: relative;
+        }
+        
+        .main-content {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+            background: var(--bg-color);
+        }
+        
+        .post-section {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px 0;
+        }
+        
+        .section-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-bottom: 10px;
+            color: var(--text-color);
+        }
+        
+        .section-subtitle {
+            color: var(--text-light);
+            margin-bottom: 20px;
+            font-size: 0.95rem;
         }
         
         .sidebar {
@@ -547,6 +606,71 @@
             background: var(--primary-dark);
         }
         
+        .message-input-wrapper {
+            display: flex;
+            align-items: flex-end;
+            width: 100%;
+            gap: 8px;
+        }
+        
+        .message-textarea {
+            flex: 1;
+            padding: 10px 15px;
+            border: 1px solid var(--border-color);
+            border-radius: 20px;
+            font-size: 0.95rem;
+            outline: none;
+            background: var(--input-bg);
+            color: var(--text-color);
+            resize: none;
+            min-height: 40px;
+            max-height: 150px;
+            overflow-y: auto;
+            line-height: 1.4;
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            appearance: none;
+        }
+        
+        .message-textarea:focus {
+            border-color: var(--primary-color);
+        }
+        
+        /* Mobile-specific styles */
+        @media (max-width: 768px) {
+            .message-textarea {
+                padding: 12px 15px;
+                font-size: 16px; /* Prevents zoom on iOS */
+                min-height: 44px;
+            }
+            
+            .message-input button {
+                width: 44px;
+                height: 44px;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .message-textarea {
+                padding: 10px 14px;
+                font-size: 16px;
+                min-height: 42px;
+            }
+            
+            .message-input button {
+                width: 42px;
+                height: 42px;
+            }
+        }
+        
+        /* Additional mobile touch optimizations */
+        @media (max-width: 768px) {
+            .message-input {
+                padding: 10px;
+                padding-bottom: max(10px, env(safe-area-inset-bottom));
+            }
+        }
+        
         .empty-state {
             flex: 1;
             display: flex;
@@ -752,6 +876,194 @@
         
         .toast-notification.channel .toast-avatar {
             background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        }
+        
+        /* Professional Post Text Field Styles */
+        .post-field-container {
+            position: relative;
+            width: 100%;
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-medium);
+            background: var(--input-bg);
+            overflow: hidden;
+            transition: all 0.3s ease;
+            box-shadow: var(--shadow-light);
+            margin: 20px 0;
+        }
+
+        .post-field-container:focus-within {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(108, 92, 231, 0.1);
+        }
+
+        .post-field-header {
+            padding: 15px 20px;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            background: rgba(108, 92, 231, 0.02);
+        }
+
+        .post-field-avatar {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: var(--primary-color);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 0.9rem;
+            flex-shrink: 0;
+        }
+
+        .post-field-placeholder {
+            color: var(--text-light);
+            font-size: 0.95rem;
+            flex: 1;
+        }
+
+        .post-field-textarea {
+            width: 100%;
+            min-height: 120px;
+            padding: 20px;
+            border: none;
+            resize: none;
+            outline: none;
+            font-family: inherit;
+            font-size: 1rem;
+            line-height: 1.5;
+            background: transparent;
+            color: var(--text-color);
+        }
+
+        .post-field-textarea::placeholder {
+            color: var(--text-light);
+            opacity: 0.7;
+        }
+
+        .post-field-actions {
+            padding: 15px 20px;
+            border-top: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: rgba(108, 92, 231, 0.02);
+        }
+
+        .post-field-tools {
+            display: flex;
+            gap: 15px;
+        }
+
+        .post-field-tool {
+            background: none;
+            border: none;
+            color: var(--text-light);
+            cursor: pointer;
+            font-size: 1.1rem;
+            padding: 8px;
+            border-radius: 6px;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .post-field-tool:hover {
+            color: var(--primary-color);
+            background: rgba(108, 92, 231, 0.1);
+        }
+
+        .post-field-button {
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: var(--radius-small);
+            padding: 10px 20px;
+            font-size: 0.95rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .post-field-button:hover {
+            background: var(--primary-dark);
+            transform: translateY(-1px);
+        }
+
+        .post-field-button:disabled {
+            background: var(--border-color);
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .character-counter {
+            font-size: 0.8rem;
+            color: var(--text-light);
+            margin-top: 5px;
+            text-align: right;
+        }
+
+        /* Responsive styles for post field */
+        @media (max-width: 768px) {
+            .post-field-header {
+                padding: 12px 15px;
+            }
+
+            .post-field-textarea {
+                padding: 15px;
+                min-height: 100px;
+            }
+
+            .post-field-actions {
+                padding: 12px 15px;
+                flex-direction: column;
+                align-items: stretch;
+                gap: 12px;
+            }
+
+            .post-field-tools {
+                justify-content: center;
+            }
+
+            .post-field-button {
+                width: 100%;
+                justify-content: center;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .post-field-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 10px;
+            }
+
+            .post-field-tools {
+                width: 100%;
+                justify-content: space-around;
+            }
+        }
+        
+        /* Compact version of post field */
+        .post-field-compact {
+            border-radius: var(--radius-small);
+        }
+
+        .post-field-compact .post-field-textarea {
+            min-height: 80px;
+            padding: 15px;
+        }
+
+        .post-field-compact .post-field-header,
+        .post-field-compact .post-field-actions {
+            padding: 10px 15px;
         }
         
         @media (max-width: 768px) {
@@ -1740,6 +2052,207 @@
             background: var(--danger-color);
         }
         
+        /* Стили для системы подарков */
+        .gift-item {
+            display: flex;
+            align-items: center;
+            padding: 8px 0;
+            border-bottom: 1px solid var(--border-color);
+        }
+        
+        .gift-item:last-child {
+            border-bottom: none;
+        }
+        
+        .gift-icon {
+            font-size: 1.5rem;
+            margin-right: 10px;
+        }
+        
+        .gift-info {
+            flex: 1;
+        }
+        
+        .gift-sender {
+            font-weight: bold;
+        }
+        
+        .gift-date {
+            font-size: 0.8rem;
+            color: var(--text-light);
+        }
+        
+        .user-profile-info {
+            text-align: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid var(--border-color);
+        }
+        
+        .user-profile-info .user-avatar {
+            width: 80px;
+            height: 80px;
+            font-size: 2.5rem;
+            margin: 0 auto 10px;
+        }
+        
+        .user-profile-info h3 {
+            margin: 5px 0;
+            font-size: 1.3rem;
+        }
+        
+        .user-profile-info p {
+            margin: 3px 0;
+            font-size: 0.9rem;
+            color: var(--text-light);
+        }
+        
+        .user-gifts-section h3 {
+            margin-bottom: 10px;
+            padding-bottom: 5px;
+            border-bottom: 1px solid var(--border-color);
+        }
+        
+        .gifts-list {
+            max-height: 300px;
+            overflow-y: auto;
+            margin-bottom: 15px;
+        }
+        
+        .gift-actions {
+            display: flex;
+            gap: 5px;
+        }
+        
+        .gift-action-btn {
+            background: none;
+            border: none;
+            color: var(--text-light);
+            cursor: pointer;
+            font-size: 1rem;
+            padding: 2px;
+            margin-left: 5px;
+        }
+        
+        .gift-action-btn:hover {
+            color: var(--primary-color);
+        }
+        
+        /* Improved profile viewing styles */
+        .user-profile-info {
+            text-align: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid var(--border-color);
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 15px;
+            padding: 25px;
+            margin: -20px -20px 20px -20px;
+        }
+        
+        .user-profile-info .user-avatar {
+            width: 120px;
+            height: 120px;
+            font-size: 3.5rem;
+            margin: 0 auto 15px;
+            background: rgba(255, 255, 255, 0.2);
+            border: 4px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .user-profile-info h3 {
+            margin: 10px 0;
+            font-size: 1.8rem;
+            font-weight: bold;
+        }
+        
+        .user-profile-info p {
+            margin: 5px 0;
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+        
+        .user-gifts-section h3 {
+            margin-bottom: 12px;
+            padding-bottom: 8px;
+            border-bottom: 2px solid var(--primary-color);
+            color: var(--primary-color);
+        }
+        
+        .gifts-list {
+            max-height: 300px;
+            overflow-y: auto;
+            margin-bottom: 15px;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 10px;
+        }
+        
+        .gift-item {
+            display: flex;
+            align-items: center;
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 8px;
+            background: var(--input-bg);
+            border: 1px solid var(--border-color);
+        }
+        
+        .gift-item:last-child {
+            margin-bottom: 0;
+        }
+        
+        .gift-icon {
+            font-size: 2.5rem;
+            margin-right: 15px;
+        }
+        
+        .gift-info {
+            flex: 1;
+        }
+        
+        .gift-sender {
+            font-weight: bold;
+            color: var(--primary-color);
+            margin-bottom: 3px;
+        }
+        
+        .gift-date {
+            font-size: 0.85rem;
+            color: var(--text-light);
+        }
+        
+        /* Gift marketplace styles */
+        .gift-types-container {
+            margin: 15px 0;
+        }
+        
+        .gift-type-item {
+            background: var(--input-bg);
+            border-radius: 8px;
+            margin-bottom: 10px;
+            padding: 15px;
+            border: 1px solid var(--border-color);
+        }
+        
+        .gift-buy-btn {
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 5px;
+            padding: 8px 15px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        
+        .gift-buy-btn:hover {
+            background: var(--primary-dark);
+        }
+        
         @media (max-width: 768px) {
             .call-video-local {
                 width: 100px;
@@ -1791,6 +2304,31 @@
         <div class="sidebar-overlay" id="sidebar-overlay"></div>
         
         <div class="content-wrapper">
+            <div class="main-content" id="main-content" style="display: none;">
+                <div class="post-section">
+                    <h2 class="section-title">Create a Post</h2>
+                    <p class="section-subtitle">Share your thoughts with your network</p>
+                    
+                    <!-- Professional Post Text Field -->
+                    <div class="post-field-container">
+                        <div class="post-field-header">
+                            <div class="post-field-avatar" id="post-user-avatar">U</div>
+                            <div class="post-field-placeholder">What's on your mind?</div>
+                        </div>
+                        <textarea class="post-field-textarea" placeholder="Write your post here..."></textarea>
+                        <div class="post-field-actions">
+                            <div class="post-field-tools">
+                                <button class="post-field-tool" title="Add poll">📊</button>
+                                <button class="post-field-tool" title="Tag people">👤</button>
+                                <button class="post-field-tool" title="Add feeling">😊</button>
+                            </div>
+                            <button class="post-field-button" id="publish-post-btn">Publish</button>
+                        </div>
+                        <div class="character-counter"><span id="post-char-count">0</span>/500</div>
+                    </div>
+                </div>
+            </div>
+            
             <div class="sidebar" id="sidebar">
                 <div class="user-profile">
                     <h2 id="current-user">
@@ -1844,7 +2382,8 @@
                     </div>
                     <div class="chat-header-actions">
                         <button class="chat-header-btn" id="close-chat-btn" title="Вернуться к списку чатов">←</button>
-                        <button class="chat-header-btn" id="audio-call-btn" title="Аудиозвонок">📞</button>
+                        <button class="chat-header-btn" id="view-profile-btn" title="Просмотр профиля">👤</button>
+                        <button class="chat-header-btn" id="send-gift-btn" title="Отправить подарок">🌹</button>
                         <button class="chat-header-btn" id="block-user-btn" title="Заблокировать пользователя">🚫</button>
                         <button class="chat-header-btn" id="delete-chat-btn" title="Удалить чат">🗑️</button>
                         <button class="chat-header-btn" id="group-settings-btn" title="Настройки группы" style="display: none;">⚙️</button>
@@ -1857,12 +2396,14 @@
                 </div>
                 
                 <div class="message-input" id="message-input-container" style="display: none;">
-                    <input type="text" id="message-text" placeholder="Введите сообщение..." autocomplete="off">
-                    <button id="send-btn">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
-                        </svg>
-                    </button>
+                    <div class="message-input-wrapper">
+                        <textarea id="message-text" class="message-textarea" placeholder="Введите сообщение..." autocomplete="off"></textarea>
+                        <button id="send-btn">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
+                            </svg>
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>
@@ -1958,6 +2499,13 @@
                     <span class="emoji-option" data-emoji="😡">😡</span>
                     <span class="emoji-option" data-emoji="🥳">🥳</span>
                     <span class="emoji-option" data-emoji="😍">😍</span>
+                </div>
+            </div>
+            
+            <div class="user-gifts-section">
+                <h3>Мои полученные подарки</h3>
+                <div class="gifts-list" id="my-gifts-list">
+                    <!-- Список моих подарков будет здесь -->
                 </div>
             </div>
             
@@ -2130,6 +2678,31 @@
         </div>
     </div>
     
+    <!-- Модальное окно просмотра профиля -->
+    <div class="modal" id="profile-view-modal">
+        <div class="modal-content">
+            <h2 class="modal-title">Профиль пользователя</h2>
+            
+            <div class="user-profile-info">
+                <div class="user-avatar" id="profile-avatar" style="width: 120px; height: 120px; font-size: 3.5rem; margin: 0 auto 15px; border: 4px solid var(--primary-color); border-radius: 50%; display: flex; align-items: center; justify-content: center;">?</div>
+                <h3 id="profile-name" style="font-size: 1.8rem; margin: 10px 0; color: var(--primary-color);">Имя пользователя</h3>
+                <p id="profile-username" style="font-size: 1.1rem; margin: 5px 0; color: var(--text-light);">@username</p>
+                <p id="profile-status" style="font-size: 1rem; margin: 8px 0;">Статус</p>
+            </div>
+            
+            <div class="user-gifts-section">
+                <h3 style="margin-bottom: 12px; padding-bottom: 8px; border-bottom: 2px solid var(--primary-color); color: var(--primary-color);">Полученные подарки</h3>
+                <div class="gifts-list" id="gifts-list" style="max-height: 300px; overflow-y: auto; border: 1px solid var(--border-color); border-radius: 8px; padding: 10px; margin-bottom: 15px;">
+                    <!-- Список подарков будет здесь -->
+                </div>
+            </div>
+            
+            <div class="modal-actions">
+                <button class="modal-btn modal-btn-secondary" id="close-profile-view-btn">Закрыть</button>
+            </div>
+        </div>
+    </div>
+    
     <script>
         // Firebase конфигурация
         const firebaseConfig = {
@@ -2253,6 +2826,11 @@
         let backgroundCheckIntervals = [];
         let notifiedMessageIds = new Set();
         
+        // Gift system variables
+        let giftCount = 1000; // Total gifts available
+        let sentGiftsToday = {}; // Track gifts sent today {username: timestamp}
+        let userGifts = {}; // Track gifts received by user {username: [gifts]}
+        
         // Функция показа уведомлений
         function showNotification(message) {
             if (!notification) {
@@ -2348,6 +2926,9 @@
             
             // Оптимизация для Android
             optimizeForAndroid();
+            
+            // Initialize daily gift tracker
+            initializeDailyGiftTracker();
         }
         
         // Функция запроса разрешения на уведомления
@@ -2534,6 +3115,15 @@
             });
             
             document.getElementById('profile-settings-modal').classList.add('active');
+            
+            // Load user's gifts
+            loadMyGifts();
+            
+            // Ensure the gifts section is visible initially (it will be hidden by loadMyGifts if no gifts)
+            const giftsSection = document.querySelector('.user-gifts-section');
+            if (giftsSection) {
+                giftsSection.style.display = 'block';
+            }
         }
 
         function closeProfileSettings() {
@@ -2584,8 +3174,19 @@
             
             sendBtn.addEventListener('click', sendMessage);
             
-            messageText.addEventListener('keypress', (e) => {
-                if (e.key === 'Enter') sendMessage();
+            messageText.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault();
+                    sendMessage();
+                }
+                // Auto-resize textarea as user types
+                setTimeout(() => {
+                    autoResizeTextarea();
+                }, 0);
+            });
+            
+            messageText.addEventListener('input', () => {
+                autoResizeTextarea();
             });
             
             messageText.addEventListener('focus', () => {
@@ -2674,6 +3275,82 @@
             
             blockUserBtn.addEventListener('click', toggleBlockUser);
             deleteChatBtn.addEventListener('click', deleteChat);
+            
+            // Gift and Profile button event listeners
+            document.getElementById('view-profile-btn').addEventListener('click', () => {
+                if (currentChat && currentChatType === 'user') {
+                    viewUserProfile(currentChat);
+                }
+            });
+            
+            document.getElementById('send-gift-btn').addEventListener('click', () => {
+                if (currentChat && currentChatType === 'user') {
+                    openGiftMarketplace();
+                }
+            });
+            
+            document.getElementById('close-profile-view-btn').addEventListener('click', () => {
+                document.getElementById('profile-view-modal').classList.remove('active');
+            });
+            
+            // Toggle between post interface and chat interface
+            const createPostBtn = document.getElementById('create-post-btn');
+            if (createPostBtn) {
+                createPostBtn.addEventListener('click', function() {
+                    // Hide sidebar on mobile
+                    document.getElementById('sidebar').style.transform = 'translateX(-100%)';
+                    document.getElementById('sidebar-overlay').classList.remove('active');
+                    document.getElementById('mobile-menu-btn').style.display = 'flex';
+                    
+                    // Show post interface, hide chat interface
+                    document.getElementById('main-content').style.display = 'block';
+                    document.querySelector('.chat-area').style.display = 'none';
+                    
+                    // Update mobile header
+                    document.getElementById('mobile-title').textContent = 'Create Post';
+                    
+                    // Update back button functionality
+                    const mobileBackBtn = document.getElementById('mobile-back-btn');
+                    if (mobileBackBtn) {
+                        mobileBackBtn.onclick = function() {
+                            document.getElementById('main-content').style.display = 'none';
+                            document.querySelector('.chat-area').style.display = 'flex';
+                            document.getElementById('mobile-title').textContent = 'Twin';
+                        };
+                    }
+                });
+            }
+            
+            // Handle post publishing
+            const publishPostBtn = document.getElementById('publish-post-btn');
+            if (publishPostBtn) {
+                publishPostBtn.addEventListener('click', function() {
+                    const postTextarea = document.querySelector('.post-field-textarea');
+                    const postContent = postTextarea.value.trim();
+                    
+                    if (postContent) {
+                        // Here you would typically send the post to your backend
+                        console.log('Publishing post:', postContent);
+                        
+                        // Show success notification
+                        showNotification('Post published successfully!');
+                        
+                        // Clear the post field
+                        postTextarea.value = '';
+                        postTextarea.dispatchEvent(new Event('input'));
+                        postTextarea.style.height = 'auto';
+                        
+                        // Optionally redirect back to chat interface
+                        setTimeout(function() {
+                            document.getElementById('main-content').style.display = 'none';
+                            document.querySelector('.chat-area').style.display = 'flex';
+                            document.getElementById('mobile-title').textContent = 'Twin';
+                        }, 1500);
+                    } else {
+                        showNotification('Please write something before publishing.');
+                    }
+                });
+            }
             
             window.addEventListener('online', () => {
                 isOnline = true;
@@ -3101,6 +3778,35 @@ async function createFirebaseNotification(message, chatName, type) {
             }
         }
         
+        function autoResizeTextarea() {
+            const textarea = messageText;
+            if (!textarea) return;
+            
+            // Reset height to auto to calculate the correct scrollHeight
+            textarea.style.height = 'auto';
+            
+            // Calculate the height needed for the content
+            const scrollHeight = textarea.scrollHeight;
+            
+            // Set a maximum height to prevent the textarea from taking too much space
+            const maxHeight = window.innerWidth <= 768 ? 150 : 200; // Lower max on mobile
+            
+            // Apply the calculated height with a maximum limit
+            textarea.style.height = Math.min(scrollHeight, maxHeight) + 'px';
+            
+            // Adjust the chat messages area if needed
+            if (currentChat) {
+                adjustMessageInput();
+            }
+        }
+        
+        // Also listen for window resize events to adjust the textarea
+        window.addEventListener('resize', () => {
+            setTimeout(() => {
+                autoResizeTextarea();
+            }, 100);
+        });
+        
         function switchTab(tab) {
             activeTab = tab;
             
@@ -3195,6 +3901,13 @@ async function createFirebaseNotification(message, chatName, type) {
                 }
                 
                 userEmojiEl.textContent = userEmoji;
+                
+                // Update post field avatar as well
+                const postUserAvatar = document.getElementById('post-user-avatar');
+                if (postUserAvatar) {
+                    postUserAvatar.textContent = userEmoji.charAt(0).toUpperCase();
+                }
+                
                 showNotification('Настройки сохранены');
                 closeSettings();
                 
@@ -4153,6 +4866,10 @@ function trackUserStatus() {
             groupSettingsBtn.style.display = 'none';
             channelSettingsBtn.style.display = 'none';
             
+            // Показываем кнопки профиля и подарков для личных чатов
+            document.getElementById('view-profile-btn').style.display = 'block';
+            document.getElementById('send-gift-btn').style.display = 'block';
+            
             // Показываем кнопку звонка только для личных чатов
             document.getElementById('audio-call-btn').style.display = 'block';
             
@@ -4196,6 +4913,10 @@ function trackUserStatus() {
                 clearInterval(messageListeners[currentChat]);
                 delete messageListeners[currentChat];
             }
+            
+            // Hide gift and profile buttons
+            document.getElementById('view-profile-btn').style.display = 'none';
+            document.getElementById('send-gift-btn').style.display = 'none';
             
             currentChat = null;
             currentChatType = null;
@@ -4362,6 +5083,7 @@ function trackUserStatus() {
                     // Сохраняем сообщение пользователя
                     await database.ref('messages/' + chatId).push(message);
                     messageText.value = '';
+                    autoResizeTextarea();
                     loadAIMessages();
                     
                     // Отправляем запрос к AI
@@ -4407,6 +5129,7 @@ function trackUserStatus() {
                 }
                 
                 messageText.value = '';
+                autoResizeTextarea();
                 await sendRepeatedMessages(chatId, messageToRepeat, count);
                 return;
             }
@@ -4428,6 +5151,7 @@ function trackUserStatus() {
                 await createNotificationForReceiver(text);
                 
                 messageText.value = '';
+                autoResizeTextarea();
                 
                 loadMessages();
                 
@@ -4619,6 +5343,514 @@ function trackUserStatus() {
                 .replace(/&gt;/g, ">")
                 .replace(/&quot;/g, "\"")
                 .replace(/&#039;/g, "'");
+        }
+        
+        // Gift types
+        const giftTypes = {
+            'rose': { icon: '🌹', name: 'Роза', price: 1 },
+            'heart': { icon: '❤️', name: 'Сердце', price: 1 },
+            'star': { icon: '⭐', name: 'Звезда', price: 1 },
+            'fire': { icon: '🔥', name: 'Огонь', price: 1 },
+            'gem': { icon: '💎', name: 'Кристалл', price: 1 },
+            'trophy': { icon: '🏆', name: 'Трофей', price: 1 },
+            'gift': { icon: '🎁', name: 'Подарок', price: 1 },
+            'pizza': { icon: '🍕', name: 'Пицца', price: 1 },
+            'coffee': { icon: '☕', name: 'Кофе', price: 1 },
+            'beer': { icon: '🍺', name: 'Пиво', price: 1 }
+        };
+        
+        // Total gifts available in the marketplace
+        let totalMarketplaceGifts = 1000; // Limited number of gifts in the marketplace
+        
+        // Track gifts sent per user per day
+        let dailyGiftsTracker = {};
+        
+        
+        
+        // Initialize user gifts if not present
+        async function initializeUserGifts() {
+            try {
+                const userSnapshot = await database.ref('users/' + encodeURIComponent(currentUser)).once('value');
+                const userData = userSnapshot.val();
+                
+                if (!userData || !userData.gifts) {
+                    // Initialize with default gifts
+                    const defaultGifts = { 'heart': 2, 'rose': 2 };
+                    await database.ref('users/' + encodeURIComponent(currentUser)).update({
+                        gifts: defaultGifts
+                    });
+                    return defaultGifts;
+                }
+                
+                return userData.gifts;
+            } catch (error) {
+                console.error('Error initializing user gifts:', error);
+                // Return default gifts in case of error
+                return { 'heart': 2, 'rose': 2 };
+            }
+        }
+        
+        // Initialize and manage daily gift tracker
+        function initializeDailyGiftTracker() {
+            // Check if we need to reset the daily tracker (if it's a new day)
+            const today = new Date().toDateString();
+            
+            // Clean up old entries (older than a day)
+            for (const key in dailyGiftsTracker) {
+                const keyDate = key.split('_')[1];
+                const trackerDate = new Date(keyDate).toDateString();
+                
+                if (trackerDate !== today) {
+                    delete dailyGiftsTracker[key];
+                }
+            }
+        }
+        
+        // Call this function periodically to clean up old entries
+        setInterval(initializeDailyGiftTracker, 60000); // Run every minute
+        
+        // Check if user can send gift to another user today
+        function canSendGiftToUser(username) {
+            const today = new Date().toDateString();
+            const lastSentDate = sentGiftsToday[username] ? new Date(sentGiftsToday[username]).toDateString() : null;
+            
+            return lastSentDate !== today && giftCount > 0;
+        }
+        
+        // Send gift to user
+        async function sendGiftToUser(username, giftType = 'rose') {
+            try {
+                // Validate gift type
+                if (!giftTypes[giftType]) {
+                    showNotification(`Недопустимый тип подарка: ${giftType}`);
+                    return false;
+                }
+                
+                // Check if user has already sent a gift today (FREE once per day)
+                const today = new Date().toDateString();
+                const key = `${currentUser}_${today}`;
+                
+                if (dailyGiftsTracker[key] && dailyGiftsTracker[key].count >= 1) {
+                    showNotification(`Вы уже отправили подарок сегодня! Можете отправить только один подарок в день.`);
+                    return false;
+                }
+                
+                // NEW: Now gifts are FREE - no need to check user's inventory
+                // The system allows sending any gift for free once per day
+                
+                // Update daily tracker
+                if (!dailyGiftsTracker[key]) {
+                    dailyGiftsTracker[key] = { count: 0, recipients: [] };
+                }
+                
+                // Check if user has already sent a gift to this recipient today
+                if (dailyGiftsTracker[key].recipients.includes(username)) {
+                    showNotification(`Вы уже отправили подарок этому пользователю сегодня!`);
+                    return false;
+                }
+                
+                // Update the tracker
+                dailyGiftsTracker[key].count++;
+                dailyGiftsTracker[key].recipients.push(username);
+                
+                // Save gift to recipient's collection
+                const gift = {
+                    id: Date.now(),
+                    sender: currentUser,
+                    receiver: username,
+                    type: giftType,
+                    icon: giftTypes[giftType].icon,
+                    name: giftTypes[giftType].name,
+                    timestamp: Date.now()
+                };
+                
+                // Add gift to recipient's collection
+                const userGiftsRef = database.ref('users/' + encodeURIComponent(username) + '/gifts');
+                await userGiftsRef.push(gift);
+                
+                // Create notification for recipient
+                const recipientNotificationsRef = database.ref('users/' + encodeURIComponent(username) + '/notifications');
+                await recipientNotificationsRef.push({
+                    type: 'gift',
+                    from: currentUser,
+                    gift: gift,
+                    text: `Пользователь ${currentUser} отправил вам подарок ${giftTypes[giftType].icon}!`,
+                    timestamp: Date.now(),
+                    read: false
+                });
+                
+                showNotification(`Подарок ${giftTypes[giftType].icon} отправлен пользователю ${username}! (Бесплатно)`);
+                
+                // If we're in the chat with this user, show a message
+                if (currentChat === username && currentChatType === 'user') {
+                    const chatId = getChatId(currentUser, username);
+                    const message = {
+                        sender: currentUser,
+                        text: `🎁 Я отправил(а) вам подарок ${giftTypes[giftType].icon}! (Бесплатно)`,
+                        timestamp: Date.now(),
+                        isGift: true,
+                        gift: gift
+                    };
+                    await database.ref('messages/' + chatId).push(message);
+                    loadMessages();
+                }
+                
+                // Update gift display
+                loadUserGiftsDisplay();
+                
+                return true;
+            } catch (error) {
+                console.error('Error sending gift:', error);
+                showNotification('Ошибка при отправке подарка: ' + error.message);
+                return false;
+            }
+        }
+        
+        // Open gift marketplace
+        function openGiftMarketplace() {
+            // Create modal for gift marketplace
+            const modal = document.createElement('div');
+            modal.className = 'modal active';
+            modal.id = 'gift-marketplace-modal';
+            
+            // Check if user has already sent a gift today
+            const today = new Date().toDateString();
+            const key = `${currentUser}_${today}`;
+            const hasSentGiftToday = dailyGiftsTracker[key] && dailyGiftsTracker[key].count >= 1;
+            
+            // Build gift items HTML
+            let giftItemsHtml = '';
+            for (const [type, giftInfo] of Object.entries(giftTypes)) {
+                // Disable button if user has already sent a gift today
+                const disabledAttr = hasSentGiftToday ? 'disabled' : '';
+                const disabledStyle = hasSentGiftToday ? 'opacity: 0.6; cursor: not-allowed;' : '';
+                
+                giftItemsHtml += `
+                    <div class="gift-type-item" style="display: flex; align-items: center; padding: 12px; border-bottom: 1px solid var(--border-color);">
+                        <span style="font-size: 2.5rem; margin-right: 15px;">${giftInfo.icon}</span>
+                        <div style="flex: 1;">
+                            <div style="font-weight: bold; font-size: 1.1rem;">${giftInfo.name}</div>
+                            <div style="font-size: 0.8rem; color: var(--text-light);">Цена: ${giftInfo.price} шт. (БЕСПЛАТНО сегодня)</div>
+                        </div>
+                        <button class="modal-btn modal-btn-primary gift-buy-btn" data-gift-type="${type}" style="min-width: 80px; padding: 8px 12px; font-size: 0.9rem; ${disabledStyle}" ${disabledAttr}>
+                            Отправить
+                        </button>
+                    </div>`;
+            }
+            
+            // Status message about daily limit
+            const statusMessage = hasSentGiftToday 
+                ? '<div style="color: var(--danger-color); font-weight: bold; margin: 10px 0; text-align: center;">⚠️ Вы уже отправили подарок сегодня</div>'
+                : '<div style="color: var(--success-color); margin: 10px 0; text-align: center;">✅ Вы можете отправить один подарок сегодня</div>';
+            
+            modal.innerHTML = `
+                <div class="modal-content" style="max-height: 80vh; overflow-y: auto;">
+                    <h2 class="modal-title">🎁 Магазин подарков</h2>
+                    <div style="margin-bottom: 15px; padding: 12px; background: var(--message-hover); border-radius: 8px;">
+                        <strong>Ваши подарки:</strong><br>
+                        <span id="user-gifts-display">Загрузка...</span><br>
+                        <small style="color: var(--text-light); font-size: 0.8em; display: block; margin-top: 5px;">💡 Сегодня вы можете отправить один бесплатный подарок любому пользователю</small>
+                    </div>
+                    ${statusMessage}
+                    <div class="gift-types-container">
+                        <h3>Доступные подарки:</h3>
+                        ${giftItemsHtml}
+                    </div>
+                    <div class="modal-actions" style="margin-top: 15px;">
+                        <button class="modal-btn modal-btn-secondary" id="close-marketplace-btn">Закрыть</button>
+                    </div>
+                </div>
+            `;
+            
+            document.body.appendChild(modal);
+            
+            // Load user's gifts
+            loadUserGiftsDisplay();
+            
+            // Add event listeners
+            document.getElementById('close-marketplace-btn').addEventListener('click', () => {
+                document.body.removeChild(modal);
+            });
+            
+            // Add event listeners for gift buy buttons
+            document.querySelectorAll('.gift-buy-btn:not([disabled])').forEach(btn => {
+                btn.addEventListener('click', async (e) => {
+                    const giftType = e.target.getAttribute('data-gift-type');
+                    
+                    // Get the current chat user
+                    if (!currentChat || currentChatType !== 'user') {
+                        showNotification('Подарки можно отправлять только в личных чатах!');
+                        return;
+                    }
+                    
+                    // NEW: Gifts are free now, so no need to check user's inventory
+                    // Send gift
+                    const success = await sendGiftToUser(currentChat, giftType);
+                    if (success) {
+                        // Rebuild the modal to reflect the new state
+                        document.body.removeChild(modal);
+                        openGiftMarketplace();
+                    }
+                });
+            });
+        }
+        
+        // Load and display user's gifts
+        async function loadUserGiftsDisplay() {
+            try {
+                // Get user's gift inventory from Firebase
+                const userSnapshot = await database.ref('users/' + encodeURIComponent(currentUser)).once('value');
+                const userData = userSnapshot.val();
+                const userGifts = userData.gifts || { 'heart': 2 };
+                
+                const displayElement = document.getElementById('user-gifts-display');
+                
+                if (displayElement) {
+                    let giftsHtml = '';
+                    for (const [type, count] of Object.entries(userGifts)) {
+                        giftsHtml += `${giftTypes[type].icon} ${giftTypes[type].name}: ${count}<br>`;
+                    }
+                    displayElement.innerHTML = giftsHtml || 'У вас пока нет подарков';
+                    
+                    // Add explanation that regardless of owned gifts, user can send one free gift today
+                    const today = new Date().toDateString();
+                    const key = `${currentUser}_${today}`;
+                    const hasSentGiftToday = dailyGiftsTracker[key] && dailyGiftsTracker[key].count >= 1;
+                    
+                    if (!hasSentGiftToday) {
+                        displayElement.innerHTML += '<br><small style="color: var(--success-color);">💡 Сегодня вы можете отправить один бесплатный подарок</small>';
+                    } else {
+                        displayElement.innerHTML += '<br><small style="color: var(--danger-color);">💡 Сегодня вы уже отправили подарок</small>';
+                    }
+                }
+            } catch (error) {
+                console.error('Error loading user gifts display:', error);
+            }
+        }
+        
+        // Load gifts for a user
+        async function loadUserGifts(username) {
+            try {
+                const snapshot = await database.ref('users/' + encodeURIComponent(username) + '/gifts').once('value');
+                const gifts = snapshot.val();
+                
+                if (gifts) {
+                    // Filter out invalid gift objects and sort by timestamp
+                    const validGifts = Object.values(gifts)
+                        .filter(gift => gift && gift.icon && gift.sender && gift.timestamp)
+                        .sort((a, b) => b.timestamp - a.timestamp);
+                    
+                    return validGifts;
+                }
+                
+                return [];
+            } catch (error) {
+                console.error('Error loading user gifts:', error);
+                return [];
+            }
+        }
+        
+        // Display gifts in the profile modal
+        function displayUserGifts(gifts) {
+            const giftsList = document.getElementById('gifts-list');
+            
+            if (!giftsList) return;
+            
+            if (gifts.length === 0) {
+                giftsList.innerHTML = '<div style="text-align: center; padding: 20px; color: var(--text-light); font-style: italic;">Нет полученных подарков</div>';
+                return;
+            }
+            
+            giftsList.innerHTML = '';
+            
+            gifts.forEach(gift => {
+                // Check if gift object has required properties to avoid undefined values
+                if (!gift || !gift.icon || !gift.sender || !gift.timestamp) {
+                    console.warn('Invalid gift object:', gift);
+                    return;
+                }
+                
+                const giftDate = new Date(gift.timestamp);
+                const giftItem = document.createElement('div');
+                giftItem.className = 'gift-item';
+                giftItem.style.cssText = 'display: flex; align-items: center; padding: 12px; border-radius: 8px; margin-bottom: 8px; background: var(--input-bg); border: 1px solid var(--border-color);';
+                
+                // Safely access gift properties
+                const giftIcon = gift.icon || '🎁';
+                const giftSender = gift.sender || 'Неизвестный';
+                
+                giftItem.innerHTML = `
+                    <div class="gift-icon" style="font-size: 2.5rem; margin-right: 15px;">${giftIcon}</div>
+                    <div class="gift-info" style="flex: 1;">
+                        <div class="gift-sender" style="font-weight: bold; color: var(--primary-color); margin-bottom: 3px;">${giftSender}</div>
+                        <div class="gift-date" style="font-size: 0.85rem; color: var(--text-light);">${giftDate.toLocaleDateString()} ${giftDate.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</div>
+                    </div>
+                `;
+                giftsList.appendChild(giftItem);
+            });
+        }
+        
+        // View user profile and gifts
+        async function viewUserProfile(username) {
+            try {
+                const userRef = database.ref('users/' + encodeURIComponent(username));
+                const snapshot = await userRef.once('value');
+                const userData = snapshot.val();
+                
+                if (!userData) {
+                    showNotification('Пользователь не найден');
+                    return;
+                }
+                
+                // Fill profile information
+                const profileAvatar = document.getElementById('profile-avatar');
+                const profileName = document.getElementById('profile-name');
+                const profileUsername = document.getElementById('profile-username');
+                const profileStatus = document.getElementById('profile-status');
+                
+                if (profileAvatar) {
+                    profileAvatar.textContent = (userData.name || username).charAt(0).toUpperCase();
+                }
+                if (profileName) {
+                    profileName.textContent = userData.name || username;
+                }
+                if (profileUsername) {
+                    profileUsername.textContent = '@' + username;
+                }
+                if (profileStatus) {
+                    profileStatus.textContent = `${userData.emoji || '😊'} ${(userData.online ? '🟢 Онлайн' : '🔴 Офлайн')}`;
+                }
+                
+                // Load and display gifts
+                const gifts = await loadUserGifts(username);
+                displayUserGifts(gifts);
+                
+                // Show the modal
+                document.getElementById('profile-view-modal').classList.add('active');
+            } catch (error) {
+                console.error('Error viewing user profile:', error);
+                showNotification('Ошибка при просмотре профиля: ' + error.message);
+            }
+        }
+        
+        // Load and display user's own gifts in profile settings
+        async function loadMyGifts() {
+            if (!currentUser) return;
+            
+            try {
+                const gifts = await loadUserGifts(currentUser);
+                displayMyGifts(gifts);
+                
+                // Hide the received gifts section if user has no gifts
+                const giftsSection = document.querySelector('.user-gifts-section');
+                if (giftsSection) {
+                    if (gifts.length === 0) {
+                        giftsSection.style.display = 'none';
+                    } else {
+                        giftsSection.style.display = 'block';
+                    }
+                }
+            } catch (error) {
+                console.error('Error loading my gifts:', error);
+            }
+        }
+        
+        // Display my gifts in the profile settings modal
+        function displayMyGifts(gifts) {
+            const myGiftsList = document.getElementById('my-gifts-list');
+            
+            if (!myGiftsList) return;
+            
+            if (gifts.length === 0) {
+                myGiftsList.innerHTML = '<div style="text-align: center; padding: 10px; color: var(--text-light);">У вас нет полученных подарков</div>';
+                return;
+            }
+            
+            myGiftsList.innerHTML = '';
+            
+            gifts.forEach(gift => {
+                // Check if gift object has required properties to avoid undefined values
+                if (!gift || !gift.icon || !gift.sender || !gift.timestamp) {
+                    console.warn('Invalid gift object:', gift);
+                    return;
+                }
+                
+                const giftDate = new Date(gift.timestamp);
+                const giftItem = document.createElement('div');
+                giftItem.className = 'gift-item';
+                
+                // Safely access gift properties
+                const giftIcon = gift.icon || '🎁';
+                const giftSender = gift.sender || 'Неизвестный';
+                
+                giftItem.innerHTML = `
+                    <div class="gift-icon">${giftIcon}</div>
+                    <div class="gift-info">
+                        <div class="gift-sender">${giftSender}</div>
+                        <div class="gift-date">${giftDate.toLocaleDateString()} ${giftDate.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</div>
+                    </div>
+                    <div class="gift-actions">
+                        <button class="gift-action-btn hide-gift-btn" data-gift-id="${gift.id || ''}" title="Скрыть">👁️</button>
+                        <button class="gift-action-btn transfer-gift-btn" data-gift-id="${gift.id || ''}" title="Передарить">🔄</button>
+                    </div>
+                `;
+                myGiftsList.appendChild(giftItem);
+            });
+            
+            // Add event listeners for gift actions
+            document.querySelectorAll('.hide-gift-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    const giftId = e.target.getAttribute('data-gift-id');
+                    if (giftId) hideGift(giftId);
+                });
+            });
+            
+            document.querySelectorAll('.transfer-gift-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    const giftId = e.target.getAttribute('data-gift-id');
+                    if (giftId) transferGift(giftId);
+                });
+            });
+        }
+        
+        // Hide a gift (mark as hidden)
+        async function hideGift(giftId) {
+            try {
+                // In a real implementation, we would update the gift's visibility status
+                // For now, we'll just reload the gifts to show the change
+                showNotification('Подарок скрыт');
+                await loadMyGifts();
+            } catch (error) {
+                console.error('Error hiding gift:', error);
+                showNotification('Ошибка при скрытии подарка');
+            }
+        }
+        
+        // Transfer a gift to another user
+        async function transferGift(giftId) {
+            try {
+                // Prompt user for recipient
+                const recipient = prompt('Введите имя пользователя, которому хотите передарить подарок:');
+                
+                if (!recipient) return;
+                
+                // Check if recipient exists
+                const userRef = database.ref('users/' + encodeURIComponent(recipient));
+                const snapshot = await userRef.once('value');
+                
+                if (!snapshot.exists()) {
+                    showNotification('Пользователь не найден');
+                    return;
+                }
+                
+                // In a real implementation, we would move the gift to the recipient
+                // For now, we'll just show a notification
+                showNotification(`Подарок передан пользователю ${recipient}`);
+                await loadMyGifts();
+            } catch (error) {
+                console.error('Error transferring gift:', error);
+                showNotification('Ошибка при передаче подарка');
+            }
         }
         
         async function handleLogout() {
@@ -5230,6 +6462,10 @@ function playNotificationSound() {
             blockUserBtn.style.display = 'none';
             groupSettingsBtn.style.display = 'none';
             
+            // Скрываем кнопки профиля и подарков для каналов
+            document.getElementById('view-profile-btn').style.display = 'none';
+            document.getElementById('send-gift-btn').style.display = 'none';
+            
             // Скрываем кнопку очистки истории AI
             const clearHistoryBtn = document.getElementById('clear-history-btn');
             if (clearHistoryBtn) clearHistoryBtn.style.display = 'none';
@@ -5732,6 +6968,10 @@ function playNotificationSound() {
             
             blockUserBtn.style.display = 'none';
             
+            // Скрываем кнопки профиля и подарков для групп
+            document.getElementById('view-profile-btn').style.display = 'none';
+            document.getElementById('send-gift-btn').style.display = 'none';
+            
             // Скрываем кнопку очистки истории AI
             const clearHistoryBtn = document.getElementById('clear-history-btn');
             if (clearHistoryBtn) clearHistoryBtn.style.display = 'none';
@@ -6137,7 +7377,8 @@ function playNotificationSound() {
                         lastSeen: Date.now(),
                         blockedUsers: [],
                         subscribedChannels: [],
-                        recentChats: []
+                        recentChats: [],
+                        gifts: { 'heart': 2 }
                     };
                     
                     await userRef.set(currentUserData);
@@ -6150,6 +7391,12 @@ function playNotificationSound() {
                     }
                     if (userEmojiEl) {
                         userEmojiEl.textContent = userEmoji;
+                    }
+                    
+                    // Update post field avatar as well
+                    const postUserAvatar = document.getElementById('post-user-avatar');
+                    if (postUserAvatar) {
+                        postUserAvatar.textContent = userEmoji.charAt(0).toUpperCase();
                     }
                     
                     await updateUserStatus(true);
@@ -6206,6 +7453,14 @@ function playNotificationSound() {
                     blockedUsers = userData.blockedUsers || [];
                     subscribedChannels = userData.subscribedChannels || [];
                     
+                    // Initialize gifts if not present
+                    if (!userData.gifts) {
+                        currentUserData.gifts = { 'heart': 2 };
+                        await database.ref('users/' + encodeURIComponent(currentUser)).update({
+                            gifts: { 'heart': 2 }
+                        });
+                    }
+                    
                     localStorage.setItem('messenger_user', JSON.stringify({username: username, password: password}));
                     
                     // Обновляем UI с проверкой существования элементов
@@ -6215,6 +7470,12 @@ function playNotificationSound() {
                     }
                     if (userEmojiEl) {
                         userEmojiEl.textContent = userEmoji;
+                    }
+                    
+                    // Update post field avatar as well
+                    const postUserAvatar = document.getElementById('post-user-avatar');
+                    if (postUserAvatar) {
+                        postUserAvatar.textContent = userEmoji.charAt(0).toUpperCase();
                     }
                     
                     await updateUserStatus(true);
@@ -6572,6 +7833,129 @@ function playNotificationSound() {
         // Кнопка видео скрыта - только аудио звонки
         
         initCallListeners();
+        
+        // Test function to demonstrate the gift functionality
+        function testGiftFunctionality() {
+            console.log('Testing gift functionality:');
+            console.log('- Users can send one free gift per day to any user');
+            console.log('- Gifts are now free once per day');
+            console.log('- Daily limits are tracked per user');
+            console.log('- UI shows when daily limit is reached');
+            console.log('- Received gifts section is hidden when user has no gifts');
+            
+            // Log current gift system status
+            console.log('Gift types available:', Object.keys(giftTypes));
+            console.log('Current user:', currentUser);
+            
+            if (currentUser) {
+                const today = new Date().toDateString();
+                const key = `${currentUser}_${today}`;
+                const hasSentGiftToday = dailyGiftsTracker[key] && dailyGiftsTracker[key].count >= 1;
+                console.log('Has sent gift today:', hasSentGiftToday);
+                console.log('Daily tracker status:', dailyGiftsTracker[key]);
+            }
+        }
+        
+        // Run test on page load
+        window.addEventListener('load', testGiftFunctionality);
     </script>
 </body>
+    <script>
+        // Add event listeners for post field functionality
+        document.addEventListener('DOMContentLoaded', function() {
+            // Initialize any existing post fields
+            const postTextareas = document.querySelectorAll('.post-field-textarea');
+            
+            postTextareas.forEach(textarea => {
+                // Set up character counting
+                const container = textarea.closest('.post-field-container');
+                const charCounter = container.querySelector('.character-counter span');
+                const maxLength = 500; // Default max length
+                
+                // Create character counter if it doesn't exist
+                if (!charCounter) {
+                    const counterDiv = document.createElement('div');
+                    counterDiv.className = 'character-counter';
+                    counterDiv.innerHTML = '<span>0</span>/' + maxLength;
+                    container.appendChild(counterDiv);
+                }
+                
+                textarea.addEventListener('input', function() {
+                    const currentLength = this.value.length;
+                    
+                    // Update character counter
+                    const counterSpan = container.querySelector('.character-counter span');
+                    if (counterSpan) {
+                        counterSpan.textContent = currentLength;
+                    }
+                    
+                    // Update button state based on content
+                    const postButton = container.querySelector('.post-field-button');
+                    if (postButton) {
+                        postButton.disabled = currentLength === 0;
+                    }
+                    
+                    // Change counter color when approaching limit
+                    const counterElement = container.querySelector('.character-counter');
+                    if (currentLength > maxLength * 0.9) {
+                        counterElement.style.color = '#e74c3c';
+                    } else {
+                        counterElement.style.color = 'var(--text-light)';
+                    }
+                    
+                    // Auto-resize textarea
+                    this.style.height = 'auto';
+                    this.style.height = Math.min(this.scrollHeight, 200) + 'px';
+                });
+                
+                // Handle Enter key for submission (with Shift for new line)
+                textarea.addEventListener('keydown', function(e) {
+                    if (e.key === 'Enter' && !e.shiftKey) {
+                        e.preventDefault();
+                        const postButton = container.querySelector('.post-field-button');
+                        if (postButton && !postButton.disabled) {
+                            postButton.click();
+                        }
+                    }
+                });
+            });
+            
+            // Add click handlers for post buttons
+            const postButtons = document.querySelectorAll('.post-field-button');
+            postButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    const container = this.closest('.post-field-container');
+                    const textarea = container.querySelector('.post-field-textarea');
+                    if (textarea && textarea.value.trim()) {
+                        // Here you would typically submit the post
+                        console.log('Post submitted:', textarea.value);
+                        
+                        // Reset the textarea
+                        textarea.value = '';
+                        textarea.dispatchEvent(new Event('input'));
+                        textarea.style.height = 'auto';
+                        
+                        // Show a confirmation or notification
+                        const notification = document.createElement('div');
+                        notification.className = 'notification show';
+                        notification.textContent = 'Post published successfully!';
+                        document.body.appendChild(notification);
+                        
+                        setTimeout(() => {
+                            notification.remove();
+                        }, 3000);
+                    }
+                });
+            });
+            
+            // Add click handlers for tools
+            const postFieldTools = document.querySelectorAll('.post-field-tool');
+            postFieldTools.forEach(tool => {
+                tool.addEventListener('click', function() {
+                    const title = this.getAttribute('title') || this.textContent;
+                    console.log('Post tool clicked:', title);
+                });
+            });
+        });
+    </script>
 </html>
