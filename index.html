@@ -1966,72 +1966,21 @@
             // Service Worker не работает на file:// протоколе (локальные файлы)
             // Он требует HTTPS или localhost
             if ('serviceWorker' in navigator) {
-                // Проверяем, что страница не открыта с file:// протокола или blob:// протокола
-                if (window.location.protocol === 'file:' || window.location.protocol === 'blob:') {
-                    console.log('Service Worker не поддерживается при открытии файла локально (file://) или через blob:// протокол. Используйте локальный сервер (Live Server) или разместите на хостинге.');
+                // Проверяем, что страница не открыта с file:// протокола
+                if (window.location.protocol === 'file:') {
+                    console.log('Service Worker не поддерживается при открытии файла локально (file://). Используйте локальный сервер (Live Server) или разместите на хостинге.');
                     return;
                 }
                 
-                const swCode = `
-                    self.addEventListener('push', function(event) {
-                        const data = event.data.json();
-                        const options = {
-                            body: data.body,
-                            icon: data.icon || 'https://cdn.jsdelivr.net/npm/emoji-datasource-apple@7.0.2/img/apple/64/1f604.png',
-                            badge: 'https://cdn.jsdelivr.net/npm/emoji-datasource-apple@7.0.2/img/apple/64/1f604.png',
-                            tag: data.tag || 'message',
-                            requireInteraction: true,
-                            actions: [
-                                {
-                                    action: 'open',
-                                    title: 'Открыть'
-                                },
-                                {
-                                    action: 'close',
-                                    title: 'Закрыть'
-                                }
-                            ]
-                        };
-                        
-                        event.waitUntil(
-                            self.registration.showNotification(data.title, options)
-                        );
-                    });
-                    
-                    self.addEventListener('notificationclick', function(event) {
-                        event.notification.close();
-                        
-                        if (event.action === 'open' || event.action === '') {
-                            event.waitUntil(
-                                clients.matchAll({type: 'window'}).then(function(clientList) {
-                                    if (clientList.length > 0) {
-                                        return clientList[0].focus();
-                                    }
-                                    return clients.openWindow('/');
-                                })
-                            );
-                        }
-                    });
-                    
-                    self.addEventListener('install', function(event) {
-                        self.skipWaiting();
-                    });
-                    
-                    self.addEventListener('activate', function(event) {
-                        event.waitUntil(self.clients.claim());
-                    });
-                `;
+                // Проверяем, что страница не открыта через blob:// протокол
+                if (window.location.protocol === 'blob:') {
+                    console.log('Service Worker не поддерживается при открытии через blob:// протокол.');
+                    return;
+                }
                 
-                const blob = new Blob([swCode], {type: 'application/javascript'});
-                const swUrl = URL.createObjectURL(blob);
-                
-                navigator.serviceWorker.register(swUrl)
-                    .then(function(registration) {
-                        console.log('Service Worker зарегистрирован:', registration);
-                    })
-                    .catch(function(error) {
-                        console.log('Ошибка регистрации Service Worker:', error);
-                    });
+                // Service Worker не может быть зарегистрирован из blob URL при HTTPS
+                // Пропускаем регистрацию, так как это одностраничное приложение
+                console.log('Service Worker пропущен: встроенный SW не поддерживается на HTTPS.');
             }
         }
         
