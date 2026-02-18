@@ -1845,7 +1845,6 @@
                     <div class="chat-header-actions">
                         <button class="chat-header-btn" id="close-chat-btn" title="Вернуться к списку чатов">←</button>
                         <button class="chat-header-btn" id="audio-call-btn" title="Аудиозвонок">📞</button>
-                        <button class="chat-header-btn" id="video-call-btn" title="Видеозвонок">🎥</button>
                         <button class="chat-header-btn" id="block-user-btn" title="Заблокировать пользователя">🚫</button>
                         <button class="chat-header-btn" id="delete-chat-btn" title="Удалить чат">🗑️</button>
                         <button class="chat-header-btn" id="group-settings-btn" title="Настройки группы" style="display: none;">⚙️</button>
@@ -2106,9 +2105,6 @@
                 </button>
                 <button class="call-btn call-btn-end" id="call-end-btn" title="Завершить звонок">
                     <span>📞</span>
-                </button>
-                <button class="call-btn" id="call-video-btn" title="Включить/выключить камеру">
-                    <span id="call-video-icon">🎥</span>
                 </button>
             </div>
         </div>
@@ -4157,9 +4153,8 @@ function trackUserStatus() {
             groupSettingsBtn.style.display = 'none';
             channelSettingsBtn.style.display = 'none';
             
-            // Показываем кнопки звонков только для личных чатов
+            // Показываем кнопку звонка только для личных чатов
             document.getElementById('audio-call-btn').style.display = 'block';
-            document.getElementById('video-call-btn').style.display = 'block';
             
             // Скрываем кнопку очистки истории AI
             const clearHistoryBtn = document.getElementById('clear-history-btn');
@@ -5239,9 +5234,8 @@ function playNotificationSound() {
             const clearHistoryBtn = document.getElementById('clear-history-btn');
             if (clearHistoryBtn) clearHistoryBtn.style.display = 'none';
             
-            // Скрываем кнопки звонков для каналов
+            // Скрываем кнопку звонка для каналов
             document.getElementById('audio-call-btn').style.display = 'none';
-            document.getElementById('video-call-btn').style.display = 'none';
             
             if (currentChannel && currentChannel.creator === currentUser) {
                 channelSettingsBtn.style.display = 'block';
@@ -5742,9 +5736,8 @@ function playNotificationSound() {
             const clearHistoryBtn = document.getElementById('clear-history-btn');
             if (clearHistoryBtn) clearHistoryBtn.style.display = 'none';
             
-            // Скрываем кнопки звонков для групп
+            // Скрываем кнопку звонка для групп
             document.getElementById('audio-call-btn').style.display = 'none';
-            document.getElementById('video-call-btn').style.display = 'none';
             
             if (currentGroup && currentGroup.admin === currentUser) {
                 groupSettingsBtn.style.display = 'block';
@@ -6467,14 +6460,22 @@ function playNotificationSound() {
             callStatus.textContent = 'Соединение...';
             
             try {
-                // Инициализируем WebRTC
+                // Инициализируем WebRTC и получаем микрофон ДО обновления статуса
                 await initPeerConnection();
                 
                 // Получаем микрофон
                 localStream = await navigator.mediaDevices.getUserMedia({ audio: true, video: false });
                 localStream.getTracks().forEach(track => peerConnection.addTrack(track, localStream));
                 
-                // Обновляем статус
+                // Проверяем, есть ли уже offer от звонящего
+                const callSnapshot = await database.ref('calls/' + encodeURIComponent(currentUser)).once('value');
+                const callData = callSnapshot.val();
+                if (callData && callData.offer) {
+                    // Если offer уже есть, сразу обрабатываем его
+                    await handleOffer(callData.offer);
+                }
+                
+                // Теперь, когда мы готовы принять offer, обновляем статус
                 await database.ref('calls/' + encodeURIComponent(currentUser)).update({ status: 'accepted' });
                 
             } catch (err) {
@@ -6564,12 +6565,11 @@ function playNotificationSound() {
         }
         
         document.getElementById('audio-call-btn').addEventListener('click', startAudioCall);
-        document.getElementById('video-call-btn').style.display = 'none'; // Скрываем видео
         document.getElementById('call-accept-btn').addEventListener('click', acceptCall);
         document.getElementById('call-decline-btn').addEventListener('click', declineCall);
         document.getElementById('call-end-btn').addEventListener('click', endCall);
         document.getElementById('call-mute-btn').addEventListener('click', toggleMute);
-        document.getElementById('call-video-btn').style.display = 'none'; // Скрываем кнопку видео
+        // Кнопка видео скрыта - только аудио звонки
         
         initCallListeners();
     </script>
