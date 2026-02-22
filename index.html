@@ -344,6 +344,20 @@
             opacity: 1;
         }
         
+        .view-profile-btn {
+            color: var(--primary-color);
+        }
+        
+        .view-profile-btn:hover {
+            color: var(--primary-dark);
+        }
+        
+        @media (max-width: 768px) {
+            .user-item .chat-actions {
+                opacity: 1;
+            }
+        }
+        
         .chat-action-btn {
             background: none;
             border: none;
@@ -1573,217 +1587,28 @@
                 padding: 10px;
             }
         }
-        
-        /* Стили для звонков */
-        .call-modal {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
-            display: none;
-            justify-content: center;
-            align-items: center;
-            z-index: 10000;
-            opacity: 0;
-            transition: opacity 0.3s ease;
-        }
-        
-        .call-modal.active {
-            display: flex;
-            opacity: 1;
-        }
-        
-        .call-container {
-            width: 100%;
-            height: 100%;
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-            padding: 20px;
-            box-sizing: border-box;
-        }
-        
-        .call-header {
-            text-align: center;
-            color: white;
-            padding-top: 40px;
-        }
-        
-        .call-avatar {
-            width: 100px;
-            height: 100px;
-            border-radius: 50%;
-            background: var(--primary-color);
-            color: white;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin: 0 auto 20px;
-            font-size: 3rem;
-            font-weight: bold;
-        }
-        
-        .call-name {
-            font-size: 1.5rem;
-            margin-bottom: 10px;
-            font-weight: 500;
-        }
-        
-        .call-status {
-            font-size: 1rem;
-            opacity: 0.8;
-            color: #aaa;
-        }
-        
-        .call-videos {
-            flex: 1;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            position: relative;
-            margin: 20px 0;
-        }
-        
-        .call-video-remote {
-            width: 100%;
-            height: 100%;
-            max-width: 800px;
-            max-height: 600px;
-            object-fit: cover;
-            border-radius: 12px;
-            background: #000;
-        }
-        
-        .call-video-local {
-            position: absolute;
-            bottom: 20px;
-            right: 20px;
-            width: 150px;
-            height: 200px;
-            object-fit: cover;
-            border-radius: 12px;
-            background: #000;
-            border: 2px solid white;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
-        }
-        
-        .call-audio-only {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            color: white;
-        }
-        
-        .call-audio-icon {
-            font-size: 5rem;
-            margin-bottom: 20px;
-            animation: pulse 2s infinite;
-        }
-        
-        @keyframes pulse {
-            0%, 100% { transform: scale(1); opacity: 1; }
-            50% { transform: scale(1.1); opacity: 0.8; }
-        }
-        
-        .call-controls {
-            display: flex;
-            justify-content: center;
-            gap: 30px;
-            padding-bottom: 40px;
-        }
-        
-        .call-btn {
-            width: 60px;
-            height: 60px;
-            border-radius: 50%;
-            border: none;
-            background: rgba(255,255,255,0.2);
-            color: white;
-            font-size: 1.5rem;
-            cursor: pointer;
-            transition: all 0.2s;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-        
-        .call-btn:hover {
-            background: rgba(255,255,255,0.3);
-            transform: scale(1.05);
-        }
-        
-        .call-btn:active {
-            transform: scale(0.95);
-        }
-        
-        .call-btn-end {
-            background: var(--danger-color);
-            width: 70px;
-            height: 70px;
-            transform: rotate(135deg);
-        }
-        
-        .call-btn-end:hover {
-            background: var(--danger-dark);
-        }
-        
-        .call-btn-accept {
-            background: var(--success-color);
-            width: 70px;
-            height: 70px;
-        }
-        
-        .call-btn-accept:hover {
-            background: var(--success-dark);
-        }
-        
-        .call-btn.muted {
-            background: var(--danger-color);
-        }
-        
-        .call-btn.video-off {
-            background: var(--danger-color);
-        }
-        
-        @media (max-width: 768px) {
-            .call-video-local {
-                width: 100px;
-                height: 133px;
-                bottom: 10px;
-                right: 10px;
-            }
-            
-            .call-avatar {
-                width: 80px;
-                height: 80px;
-                font-size: 2.5rem;
-            }
-            
-            .call-name {
-                font-size: 1.3rem;
-            }
-            
-            .call-btn {
-                width: 50px;
-                height: 50px;
-                font-size: 1.2rem;
-            }
-            
-            .call-btn-end,
-            .call-btn-accept {
-                width: 60px;
-                height: 60px;
-            }
-            
-            .call-controls {
-                gap: 20px;
-                padding-bottom: 30px;
-            }
-        }
+
+        /* Fullscreen image modal styles */
+        .image-modal { position: fixed; inset: 0; display: none; align-items: center; justify-content: center; z-index: 12000; }
+        .image-modal.active { display: flex; background: rgba(0,0,0,0.85); }
+        .image-modal-content { position: relative; max-width: 98vw; max-height: 98vh; display:flex; align-items:center; justify-content:center; padding:10px; }
+        .image-modal-content img { max-width: calc(100vw - 40px); max-height: calc(100vh - 80px); object-fit: contain; border-radius: 8px; box-shadow: 0 10px 30px rgba(0,0,0,0.6); touch-action: none; }
+        .image-modal-close { position: absolute; top: 10px; right: 10px; background: rgba(0,0,0,0.4); color: white; border: none; font-size: 20px; width:36px; height:36px; border-radius:50%; display:flex; align-items:center; justify-content:center; cursor:pointer; }
+        @media (max-width: 768px) { .image-modal-content img { max-width: 94vw; max-height: 80vh; } .image-modal-close { top: 8px; right: 8px; } }
+
+        /* Chat image responsiveness */
+        img.chat-image { max-width: 60vw; width: auto; height: auto; display: block; }
+        @media (max-width: 480px) { img.chat-image { max-width: 72vw; } }
+
+        /* Ensure modal action buttons wrap on small screens */
+        .modal-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+        .modal-actions .modal-btn { flex: 1 1 auto; min-width: 0; }
+
+        /* Message input layout */
+        .message-input { display: flex; gap: 8px; align-items: center; padding: 6px; }
+        .message-input input[type="text"] { flex: 1 1 auto; min-width: 0; }
+        .message-input button { flex: 0 0 auto; }
+
     </style>
     <!-- Firebase SDK -->
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
@@ -1866,6 +1691,8 @@
                 </div>
                 
                 <div class="message-input" id="message-input-container" style="display: none;">
+                    <button id="photo-btn" title="Отправить фото" style="margin-right:6px;">📷</button>
+                    <input type="file" id="image-input" accept="image/*" style="display:none">
                     <input type="text" id="message-text" placeholder="Введите сообщение..." autocomplete="off">
                     <button id="send-btn">
                         <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -1898,6 +1725,14 @@
     
     <!-- Telegram-style toast notifications container -->
     <div class="toast-notification-container" id="toast-container"></div>
+
+    <!-- Fullscreen image modal -->
+    <div id="image-modal" class="image-modal" aria-hidden="true">
+        <div class="image-modal-content" id="image-modal-content">
+            <button class="image-modal-close" id="image-modal-close" aria-label="Закрыть">✕</button>
+            <img id="image-modal-img" src="" alt="Фото">
+        </div>
+    </div>
     
     <!-- Модальное окно настроек -->
     <div class="modal" id="settings-modal">
@@ -2085,56 +1920,6 @@
             
             <div class="modal-actions">
                 <button class="modal-btn modal-btn-secondary" id="cancel-channel-icons-btn">Закрыть</button>
-            </div>
-        </div>
-    </div>
-    
-    <!-- Модальное окно звонка -->
-    <div class="call-modal" id="call-modal">
-        <div class="call-container">
-            <div class="call-header">
-                <div class="call-avatar" id="call-avatar">?</div>
-                <h2 class="call-name" id="call-name">Пользователь</h2>
-                <p class="call-status" id="call-status">Вызов...</p>
-            </div>
-            
-            <div class="call-videos" id="call-videos">
-                <video class="call-video-remote" id="remote-video" autoplay playsinline></video>
-                <video class="call-video-local" id="local-video" autoplay playsinline muted></video>
-            </div>
-            
-            <div class="call-audio-only" id="call-audio-only" style="display: none;">
-                <div class="call-audio-icon">📞</div>
-                <p>Аудиозвонок</p>
-            </div>
-            
-            <div class="call-controls">
-                <button class="call-btn" id="call-mute-btn" title="Выключить микрофон">
-                    <span id="call-mute-icon">🎤</span>
-                </button>
-                <button class="call-btn call-btn-end" id="call-end-btn" title="Завершить звонок">
-                    <span>📞</span>
-                </button>
-            </div>
-        </div>
-    </div>
-    
-    <!-- Модальное окно входящего звонка -->
-    <div class="call-modal" id="incoming-call-modal">
-        <div class="call-container">
-            <div class="call-header">
-                <div class="call-avatar" id="incoming-call-avatar">?</div>
-                <h2 class="call-name" id="incoming-call-name">Пользователь</h2>
-                <p class="call-status">Входящий звонок...</p>
-            </div>
-            
-            <div class="call-controls">
-                <button class="call-btn call-btn-accept" id="call-accept-btn" title="Принять">
-                    <span>📞</span>
-                </button>
-                <button class="call-btn call-btn-end" id="call-decline-btn" title="Отклонить">
-                    <span>📞</span>
-                </button>
             </div>
         </div>
     </div>
@@ -2336,7 +2121,6 @@
                         startBackgroundChecks();
                         trackUserStatus();
                         subscribeToPushNotifications();
-                        initCallListeners();
                         
                         // ===== НОВАЯ СТРОКА =====
                         await initGiftAndWalletSystem();
@@ -2602,6 +2386,74 @@
             searchInput.addEventListener('input', debounce(handleSearch, 300));
             
             sendBtn.addEventListener('click', sendMessage);
+
+            // Photo upload button and input
+            const photoBtn = document.getElementById('photo-btn');
+            const imageInput = document.getElementById('image-input');
+            if (photoBtn && imageInput) {
+                photoBtn.addEventListener('click', () => imageInput.click());
+                imageInput.addEventListener('change', async (e) => {
+                    const file = e.target.files && e.target.files[0];
+                    if (!file) return;
+                    if (!file.type.startsWith('image/')) {
+                        showNotification('Можно отправлять только изображения (фото)');
+                        return;
+                    }
+                    // Optional size limit (e.g., 20 MB)
+                    const maxSize = 20 * 1024 * 1024;
+                    if (file.size > maxSize) {
+                        showNotification('Файл слишком большой. Максимум 20 МБ');
+                        return;
+                    }
+
+                    try {
+                        photoBtn.disabled = true;
+                        photoBtn.textContent = '⏳';
+                        // Показываем индикатор загрузки
+                        let progressBar = document.getElementById('photo-upload-progress');
+                        if (!progressBar) {
+                            progressBar = document.createElement('div');
+                            progressBar.id = 'photo-upload-progress';
+                            progressBar.style.position = 'fixed';
+                            progressBar.style.bottom = '70px';
+                            progressBar.style.left = '50%';
+                            progressBar.style.transform = 'translateX(-50%)';
+                            progressBar.style.width = '60vw';
+                            progressBar.style.maxWidth = '320px';
+                            progressBar.style.height = '8px';
+                            progressBar.style.background = '#eee';
+                            progressBar.style.borderRadius = '6px';
+                            progressBar.style.boxShadow = '0 2px 8px rgba(0,0,0,0.12)';
+                            progressBar.innerHTML = '<div style="width:0%;height:100%;background:#6c5ce7;border-radius:6px;transition:width 0.3s;" id="photo-upload-bar"></div>';
+                            document.body.appendChild(progressBar);
+                        }
+                        // Симуляция прогресса (реального нет, но покажем анимацию)
+                        let bar = document.getElementById('photo-upload-bar');
+                        if (bar) bar.style.width = '10%';
+                        setTimeout(() => { if (bar) bar.style.width = '40%'; }, 400);
+                        setTimeout(() => { if (bar) bar.style.width = '70%'; }, 900);
+                        const imageUrl = await uploadImageToImgbb(file);
+                        if (bar) bar.style.width = '100%';
+                        setTimeout(() => { if (progressBar) progressBar.remove(); }, 1200);
+                        if (imageUrl) {
+                            await sendImageMessage(imageUrl);
+                        } else {
+                            showNotification('Ошибка загрузки изображения');
+                        }
+                    } catch (err) {
+                        console.error(err);
+                        showNotification('Ошибка отправки изображения');
+                        let progressBar = document.getElementById('photo-upload-progress');
+                        if (progressBar) progressBar.remove();
+                    } finally {
+                        photoBtn.disabled = false;
+                        photoBtn.textContent = '📷';
+                        imageInput.value = '';
+                        let progressBar = document.getElementById('photo-upload-progress');
+                        if (progressBar) progressBar.remove();
+                    }
+                });
+            }
             
             messageText.addEventListener('keypress', (e) => {
                 if (e.key === 'Enter') sendMessage();
@@ -3556,12 +3408,16 @@ async function createFirebaseNotification(message, chatName, type) {
                         </div>
                     </div>
                     <div class="chat-actions">
+                        ${chat.type === 'user' && username ? '<button class="chat-action-btn view-profile-btn" data-username="' + username + '" title="Просмотреть профиль">👤</button>' : ''}
                         <button class="chat-action-btn delete-chat-btn" data-chat-id="${chat.id}" data-chat-type="${chat.type}" title="Удалить чат">🗑️</button>
                     </div>
                 `;
                 
                 userItem.addEventListener('click', (e) => {
-                    if (e.target.classList.contains('delete-chat-btn')) {
+                    if (e.target.classList.contains('delete-chat-btn') || e.target.closest('.delete-chat-btn')) {
+                        return;
+                    }
+                    if (e.target.classList.contains('view-profile-btn') || e.target.closest('.view-profile-btn')) {
                         return;
                     }
                     
@@ -3575,6 +3431,17 @@ async function createFirebaseNotification(message, chatName, type) {
                         openChannelChat(chat.id, chat.name);
                     }
                 });
+                
+                const profileViewBtn = userItem.querySelector('.view-profile-btn');
+                if (profileViewBtn) {
+                    profileViewBtn.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        const targetUsername = profileViewBtn.getAttribute('data-username');
+                        if (targetUsername) {
+                            openUserProfile(targetUsername);
+                        }
+                    });
+                }
                 
                 const deleteBtn = userItem.querySelector('.delete-chat-btn');
                 deleteBtn.addEventListener('click', (e) => {
@@ -3961,16 +3828,24 @@ function trackUserStatus() {
                             <p style="font-size: 0.75rem; color: var(--text-light);">@${user.username}</p>
                             <p>${user.online ? 'Онлайн' : formatLastSeen(user.lastSeen)}</p>
                         </div>
+                        ${!isBlocked ? '<div class="chat-actions"><button class="chat-action-btn view-profile-btn" data-username="' + user.username + '" title="Просмотреть профиль">👤</button></div>' : ''}
                     `;
                     
                     if (!isBlocked) {
-                        userItem.addEventListener('click', () => addUserToChatsAndOpen(user));
-                        
-                        // Добавляем возможность просмотра профиля пользователя
-                        userItem.addEventListener('contextmenu', (e) => {
-                            e.preventDefault();
-                            openUserProfile(user.username);
+                        userItem.addEventListener('click', (e) => {
+                            if (!e.target.closest('.view-profile-btn')) addUserToChatsAndOpen(user);
                         });
+                        
+                        const profileBtn = userItem.querySelector('.view-profile-btn');
+                        if (profileBtn) {
+                            profileBtn.addEventListener('click', (e) => {
+                                e.stopPropagation();
+                                const targetUsername = profileBtn.getAttribute('data-username');
+                                if (targetUsername) {
+                                    openUserProfile(targetUsername);
+                                }
+                            });
+                        }
                     }
                     
                     searchResults.appendChild(userItem);
@@ -4079,16 +3954,24 @@ function trackUserStatus() {
                                     <p style="font-size: 0.75rem; color: var(--text-light);">@${user.username}</p>
                                     <p>${user.online ? 'Онлайн' : formatLastSeen(user.lastSeen)}</p>
                                 </div>
+                                ${!isBlocked ? '<div class="chat-actions"><button class="chat-action-btn view-profile-btn" data-username="' + user.username + '" title="Просмотреть профиль">👤</button></div>' : ''}
                             `;
                             
                             if (!isBlocked) {
-                                userItem.addEventListener('click', () => addUserToChatsAndOpen(user));
-                                
-                                // Добавляем возможность просмотра профиля пользователя
-                                userItem.addEventListener('contextmenu', (e) => {
-                                    e.preventDefault();
-                                    openUserProfile(user.username);
+                                userItem.addEventListener('click', (e) => {
+                                    if (!e.target.closest('.view-profile-btn')) addUserToChatsAndOpen(user);
                                 });
+                                
+                                const profileBtn = userItem.querySelector('.view-profile-btn');
+                                if (profileBtn) {
+                                    profileBtn.addEventListener('click', (e) => {
+                                        e.stopPropagation();
+                                        const targetUsername = profileBtn.getAttribute('data-username');
+                                        if (targetUsername) {
+                                            openUserProfile(targetUsername);
+                                        }
+                                    });
+                                }
                             }
                             
                             searchResults.appendChild(userItem);
@@ -4184,9 +4067,6 @@ function trackUserStatus() {
     groupSettingsBtn.style.display = 'none';
     channelSettingsBtn.style.display = 'none';
     
-    // Показываем кнопку звонка только для личных чатов
-    document.getElementById('audio-call-btn').style.display = 'block';
-    
     // Скрываем кнопку очистки истории AI
     const clearHistoryBtn = document.getElementById('clear-history-btn');
     if (clearHistoryBtn) clearHistoryBtn.style.display = 'none';
@@ -4203,9 +4083,12 @@ function trackUserStatus() {
     profileBtn.className = 'chat-header-btn';
     profileBtn.title = 'Просмотреть профиль';
     profileBtn.innerHTML = '👤';
-    profileBtn.onclick = function() {
-        openUserProfile(username);
-    };
+    profileBtn.setAttribute('data-username', username);
+    profileBtn.addEventListener('click', function(e) {
+        e.stopPropagation();
+        const targetUsername = this.getAttribute('data-username');
+        openUserProfile(targetUsername);
+    });
     
     // Добавляем кнопку в начало блока действий
     const actionsContainer = chatHeader.querySelector('.chat-header-actions');
@@ -4306,7 +4189,7 @@ function trackUserStatus() {
             });
             
             const sortedMessages = filteredMessages
-                .filter(msg => msg.text && msg.sender && msg.timestamp)
+                .filter(msg => (msg.text || msg.image) && msg.sender && msg.timestamp)
                 .sort((a, b) => {
                     if (a.timestamp !== b.timestamp) {
                         return a.timestamp - b.timestamp;
@@ -4353,11 +4236,26 @@ function trackUserStatus() {
                 }
                 
                 const editedMark = message.edited ? ' <span style="font-size: 0.7rem; color: var(--text-light);">(изменено)</span>' : '';
-                
+
+                let messageContentHtml = '';
+                if (message.image) {
+                    const rawUrl = message.image || '';
+                    const imgUrl = encodeURI(normalizeImageUrl(rawUrl));
+                    // Mobile: show button, Desktop: show image
+                    if (window.innerWidth <= 768) {
+                        messageContentHtml += `<div style="margin-bottom:6px;"><button class="open-image-btn" data-img="${imgUrl}" style="padding:10px 18px; border-radius:8px; background:var(--primary-color); color:white; border:none; font-size:1rem; cursor:pointer;">Открыть фото</button></div>`;
+                    } else {
+                        messageContentHtml += `<div style="margin-bottom:6px;"><img class="chat-image" src="${imgUrl}" loading="lazy" alt="Фото" style="max-width:60vw; max-height:60vh; width:auto; border-radius:8px; display:block; cursor:pointer;"></div>`;
+                    }
+                }
+                if (message.text) {
+                    messageContentHtml += `<div>${escapeHtml(message.text)}</div>`;
+                }
+
                 messagesHTML += `
                     <div class="message ${isSent ? 'sent' : 'received'}">
                         ${senderName}
-                        <div class="message-content">${escapeHtml(message.text)}${editedMark}</div>
+                        <div class="message-content">${messageContentHtml}${editedMark}</div>
                         <div class="message-time">${timeString}</div>
                         ${actionsHTML}
                     </div>
@@ -4683,7 +4581,356 @@ function trackUserStatus() {
                     });
             }
         }
-        
+
+        // Загрузка изображения на imgbb и отправка
+        async function uploadImageToImgbb(file) {
+            const apiKey = 'f3e94769bf4e24948dccfebd4e12705a';
+            const uploadUrl = `https://api.imgbb.com/1/upload?key=${apiKey}`;
+
+            // Helper: resize large images on client to avoid mobile upload truncation
+            async function resizeImageFile(inputFile, maxDim = 1600) {
+                try {
+                    const imgBitmap = await createImageBitmap(inputFile);
+                    // Для мобильных уменьшаем размер
+                    const isMobile = window.innerWidth <= 768;
+                    const dim = isMobile ? Math.min(maxDim, 1024) : maxDim;
+                    const ratio = Math.min(1, dim / Math.max(imgBitmap.width, imgBitmap.height));
+                    if (ratio === 1) return inputFile; // no resize needed
+
+                    const canvas = document.createElement('canvas');
+                    canvas.width = Math.round(imgBitmap.width * ratio);
+                    canvas.height = Math.round(imgBitmap.height * ratio);
+                    const ctx = canvas.getContext('2d');
+                    ctx.drawImage(imgBitmap, 0, 0, canvas.width, canvas.height);
+
+                    return await new Promise((resolve) => {
+                        canvas.toBlob((blob) => {
+                            if (!blob || blob.size < 1000) {
+                                console.warn('canvas.toBlob returned small blob:', blob);
+                                resolve(inputFile);
+                                return;
+                            }
+                            // convert blob to File to preserve filename/type
+                            const f = new File([blob], inputFile.name, { type: blob.type });
+                            console.log('Resize: orig', inputFile.size, '->', f.size, 'type:', blob.type);
+                            resolve(f);
+                        }, inputFile.type || 'image/jpeg', 0.9);
+                    });
+                } catch (e) {
+                    // Fallback: return original file
+                    console.warn('resizeImageFile failed, using original file', e);
+                    return inputFile;
+                }
+            }
+
+            // Try to resize if very large
+            let fileToUpload = file;
+            try {
+                if (file.size > 2 * 1024 * 1024) { // >2MB
+                    fileToUpload = await resizeImageFile(file, 1600);
+                }
+                console.log('File before upload:', file.size, 'after resize:', fileToUpload.size);
+            } catch (e) {
+                console.warn('resize step failed', e);
+                fileToUpload = file;
+            }
+
+            // First attempt: upload as multipart/form-data (binary)
+            try {
+                const formData = new FormData();
+                formData.append('image', fileToUpload);
+
+                const resp = await fetch(uploadUrl, {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const data = await resp.json().catch(() => null);
+                if (data && (data.success || data.status === 200)) {
+                    return (data.data && (data.data.url || data.data.display_url || (data.data.image && data.data.image.url))) || null;
+                } else {
+                    console.warn('imgbb multipart upload failed, falling back to base64', data);
+                }
+            } catch (error) {
+                console.warn('multipart upload error, will try base64 fallback', error);
+            }
+
+            // Fallback: read file as base64 and send string (some mobile setups work better)
+            try {
+                const base64 = await new Promise((resolve, reject) => {
+                    const reader = new FileReader();
+                    reader.onerror = () => reject(new Error('FileReader error'));
+                    reader.onload = () => {
+                        // reader.result is like data:<type>;base64,AAAA...
+                        const res = reader.result || '';
+                        const idx = res.indexOf(',');
+                        resolve(idx >= 0 ? res.slice(idx + 1) : res);
+                    };
+                    reader.readAsDataURL(fileToUpload);
+                });
+                // Выводим длину base64 строки в чат
+                try {
+                    const chatMessages = document.getElementById('chat-messages');
+                    if (chatMessages) {
+                        const msg = document.createElement('div');
+                        msg.style = 'color:#e74c3c;font-size:0.9rem;margin:8px 0;';
+                        msg.textContent = 'Base64 length: ' + base64.length + ' type: ' + fileToUpload.type;
+                        chatMessages.appendChild(msg);
+                    }
+                } catch (e) {}
+                if (base64.length < 10000) {
+                    try {
+                        const chatMessages = document.getElementById('chat-messages');
+                        if (chatMessages) {
+                            const msg = document.createElement('div');
+                            msg.style = 'color:#e74c3c;font-size:0.9rem;margin:8px 0;';
+                            msg.textContent = 'Base64 string is very short, likely broken.';
+                            chatMessages.appendChild(msg);
+                        }
+                    } catch (e) {}
+                }
+                const form = new FormData();
+                form.append('image', base64);
+
+                const resp2 = await fetch(uploadUrl, { method: 'POST', body: form });
+                const data2 = await resp2.json().catch(() => null);
+                if (data2 && (data2.success || data2.status === 200)) {
+                    return (data2.data && (data2.data.url || data2.data.display_url || (data2.data.image && data2.data.image.url))) || null;
+                } else {
+                    console.error('imgbb base64 upload failed', data2);
+                    return null;
+                }
+            } catch (error) {
+                console.error('Ошибка загрузки на imgbb (fallback):', error);
+                return null;
+            }
+        }
+
+        async function sendImageMessage(imageUrl) {
+            if (!currentChat || !imageUrl) return;
+
+            let chatId;
+            if (currentChatType === 'group' || currentChatType === 'channel') {
+                chatId = currentChat;
+            } else {
+                chatId = getChatId(currentUser, currentChat);
+            }
+
+            const message = {
+                sender: currentUser,
+                image: imageUrl,
+                text: '',
+                timestamp: Date.now()
+            };
+
+            if (currentChatType === 'user') {
+                message.receiver = currentChat;
+            }
+
+            try {
+                await database.ref('messages/' + chatId).push(message);
+                await createNotificationForReceiver('[Фото]');
+                loadMessages();
+                if (activeTab === 'chats') loadRecentChats();
+                lastMessageTimestamp = message.timestamp;
+            } catch (error) {
+                console.error('Ошибка отправки изображения:', error);
+                showNotification('Ошибка отправки изображения: ' + (error.message || error));
+            }
+        }
+
+        // Ensure valid absolute URL for images
+        function normalizeImageUrl(url) {
+            if (!url) return '';
+            try {
+                const u = new URL(url, window.location.origin);
+                // Prefer https
+                if (u.protocol === 'http:' && location.protocol === 'https:') {
+                    u.protocol = 'https:';
+                }
+                return u.toString();
+            } catch (e) {
+                // Fallback: attempt to prepend https://
+                if (!/^https?:\/\//i.test(url)) return 'https://' + url;
+                return url;
+            }
+        }
+
+        // Fullscreen image viewer: open/close + gesture support
+        (function() {
+            const modal = document.getElementById('image-modal');
+            const modalImg = document.getElementById('image-modal-img');
+            const closeBtn = document.getElementById('image-modal-close');
+            let scale = 1, startScale = 1;
+            let translateX = 0, translateY = 0, startX = 0, startY = 0;
+            let isPanning = false, lastTouchDist = 0;
+
+            function applyTransform() {
+                modalImg.style.transform = `translate(${translateX}px, ${translateY}px) scale(${scale})`;
+            }
+
+            window.openImageFullscreen = function(url) {
+                if (!modal) return;
+                modal.classList.add('active');
+                modal.setAttribute('aria-hidden', 'false');
+                modalImg.src = normalizeImageUrl(url);
+                scale = 1; translateX = 0; translateY = 0; applyTransform();
+            };
+
+            window.closeImageFullscreen = function() {
+                if (!modal) return;
+                modal.classList.remove('active');
+                modal.setAttribute('aria-hidden', 'true');
+                modalImg.src = '';
+                scale = 1; translateX = 0; translateY = 0; applyTransform();
+            };
+
+            if (closeBtn) closeBtn.addEventListener('click', closeImageFullscreen);
+
+            // Close on backdrop click
+            modal.addEventListener('click', (e) => {
+                if (e.target === modal) closeImageFullscreen();
+            });
+
+            // ESC to close
+            document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeImageFullscreen(); });
+
+            // Delegated click on chat images
+            if (chatMessages) {
+                chatMessages.addEventListener('click', (e) => {
+                    const img = e.target.closest && e.target.closest('img.chat-image');
+                    if (img) {
+                        openImageFullscreen(img.src);
+                        return;
+                    }
+                    const btn = e.target.closest && e.target.closest('.open-image-btn');
+                    if (btn) {
+                        const url = btn.getAttribute('data-img');
+                        if (url) openImageFullscreen(url);
+                    }
+                });
+            }
+
+            // Global image load error handler (capture) to help debug mobile failures
+            window.addEventListener('error', (e) => {
+                const target = e.target || e.srcElement;
+                if (target && target.tagName === 'IMG' && target.classList.contains('chat-image')) {
+                    console.error('Image failed to load:', target.src);
+                    // show a subtle placeholder
+                    target.style.opacity = '0.6';
+                    target.style.filter = 'grayscale(60%)';
+                    target.alt = 'Не удалось загрузить изображение';
+                    // Replace with small SVG placeholder to avoid continuous broken rendering
+                    try {
+                        const placeholder = 'data:image/svg+xml;utf8,' + encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" width="400" height="200"><rect width="100%" height="100%" fill="#f0f0f0"/><text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" fill="#999" font-size="16">Изображение недоступно</text></svg>`);
+                        target.src = placeholder;
+                    } catch (err) {
+                        // ignore
+                    }
+                }
+            }, true);
+
+            // Reset placeholder styles when image successfully loads
+            window.addEventListener('load', (e) => {
+                const tgt = e.target || e.srcElement;
+                if (tgt && tgt.tagName === 'IMG' && tgt.classList.contains('chat-image')) {
+                    tgt.style.opacity = '';
+                    tgt.style.filter = '';
+                }
+            }, true);
+
+            // Ensure images fully render on mobile: adjust sizing after load
+            window.addEventListener('load', (e) => {
+                const img = e.target || e.srcElement;
+                if (!img || img.tagName !== 'IMG' || !img.classList.contains('chat-image')) return;
+
+                // On small screens prefer full natural rendering within viewport
+                const vw = Math.max(document.documentElement.clientWidth || 0, window.innerWidth || 0);
+                try {
+                    if (img.naturalWidth && img.naturalHeight) {
+                        // If image is portrait, allow larger height; otherwise limit width
+                        if (img.naturalHeight > img.naturalWidth) {
+                            img.style.maxWidth = '86vw';
+                            img.style.maxHeight = '88vh';
+                        } else {
+                            img.style.maxWidth = '94vw';
+                            img.style.maxHeight = '88vh';
+                        }
+                        img.style.width = 'auto';
+                        img.style.height = 'auto';
+                        img.style.display = 'block';
+                    }
+                } catch (err) {
+                    console.warn('Error adjusting chat image sizing', err);
+                }
+
+                // On narrow screens, remove lazy attribute to ensure full load
+                if (vw <= 480 && img.hasAttribute('loading')) {
+                    img.removeAttribute('loading');
+                }
+            }, true);
+
+            // Wheel zoom (desktop)
+            modalImg.addEventListener('wheel', (e) => {
+                e.preventDefault();
+                const delta = -e.deltaY;
+                const factor = delta > 0 ? 1.08 : 0.92;
+                scale = Math.min(5, Math.max(1, scale * factor));
+                applyTransform();
+            });
+
+            // Touch gestures: pinch to zoom & pan
+            modalImg.addEventListener('touchstart', (e) => {
+                if (e.touches.length === 2) {
+                    lastTouchDist = Math.hypot(
+                        e.touches[0].clientX - e.touches[1].clientX,
+                        e.touches[0].clientY - e.touches[1].clientY
+                    );
+                    startScale = scale;
+                } else if (e.touches.length === 1) {
+                    isPanning = true;
+                    startX = e.touches[0].clientX - translateX;
+                    startY = e.touches[0].clientY - translateY;
+                }
+            }, { passive: false });
+
+            modalImg.addEventListener('touchmove', (e) => {
+                if (e.touches.length === 2) {
+                    e.preventDefault();
+                    const dist = Math.hypot(
+                        e.touches[0].clientX - e.touches[1].clientX,
+                        e.touches[0].clientY - e.touches[1].clientY
+                    );
+                    const ratio = dist / lastTouchDist;
+                    scale = Math.min(5, Math.max(1, startScale * ratio));
+                    applyTransform();
+                } else if (e.touches.length === 1 && isPanning) {
+                    e.preventDefault();
+                    translateX = e.touches[0].clientX - startX;
+                    translateY = e.touches[0].clientY - startY;
+                    applyTransform();
+                }
+            }, { passive: false });
+
+            modalImg.addEventListener('touchend', (e) => {
+                if (e.touches.length === 0) {
+                    isPanning = false; lastTouchDist = 0;
+                }
+            });
+
+            // Double-tap to toggle zoom (mobile)
+            let lastTap = 0;
+            modalImg.addEventListener('touchend', (e) => {
+                const now = Date.now();
+                if (now - lastTap < 300) {
+                    scale = scale > 1 ? 1 : 2.5;
+                    translateX = 0; translateY = 0;
+                    applyTransform();
+                }
+                lastTap = now;
+            });
+        })();
+
        // Функция для браузерных уведомлений
 function showBrowserNotification(title, message) {
     // Проверяем, поддерживает ли браузер уведомления
@@ -5285,9 +5532,6 @@ function playNotificationSound() {
             const clearHistoryBtn = document.getElementById('clear-history-btn');
             if (clearHistoryBtn) clearHistoryBtn.style.display = 'none';
             
-            // Скрываем кнопку звонка для каналов
-            document.getElementById('audio-call-btn').style.display = 'none';
-            
             if (currentChannel && currentChannel.creator === currentUser) {
                 channelSettingsBtn.style.display = 'block';
             } else {
@@ -5787,9 +6031,6 @@ function playNotificationSound() {
             const clearHistoryBtn = document.getElementById('clear-history-btn');
             if (clearHistoryBtn) clearHistoryBtn.style.display = 'none';
             
-            // Скрываем кнопку звонка для групп
-            document.getElementById('audio-call-btn').style.display = 'none';
-            
             if (currentGroup && currentGroup.admin === currentUser) {
                 groupSettingsBtn.style.display = 'block';
             } else {
@@ -6279,7 +6520,6 @@ function playNotificationSound() {
                     subscribeToPushNotifications();
                     startBackgroundChecks();
                     trackUserStatus();
-                    initCallListeners();
                     
                     showNotification('Вход выполнен успешно!');
                 } catch (error) {
@@ -6306,91 +6546,7 @@ function playNotificationSound() {
                     lastSeen: Date.now()
                 });
             }
-            // Завершаем звонок при закрытии
-            if (currentCall) {
-                endCall();
-            }
         });
-        
-        // ==================== AUDIO CALL SYSTEM ====================
-        
-        let localStream = null;
-        let remoteAudio = null;
-        let peerConnection = null;
-        let currentCall = null;
-        let isCallInitiator = false;
-        let isAudioMuted = false;
-        let currentCallType = 'audio';
-        
-        const iceServers = {
-            iceServers: [{ urls: 'stun:stun.l.google.com:19302' }]
-        };
-        
-        const callModal = document.getElementById('call-modal');
-        const incomingCallModal = document.getElementById('incoming-call-modal');
-        const localVideo = document.getElementById('local-video');
-        const remoteVideo = document.getElementById('remote-video');
-        const callName = document.getElementById('call-name');
-        const callStatus = document.getElementById('call-status');
-        const callAvatar = document.getElementById('call-avatar');
-        const incomingCallName = document.getElementById('incoming-call-name');
-        const incomingCallAvatar = document.getElementById('incoming-call-avatar');
-        const callVideos = document.getElementById('call-videos');
-        const callAudioOnly = document.getElementById('call-audio-only');
-        
-        function initCallListeners() {
-            if (!currentUser) return;
-            
-            database.ref('calls/' + encodeURIComponent(currentUser)).on('value', async (snapshot) => {
-                const data = snapshot.val();
-                if (!data) return;
-                
-                // Входящий звонок
-                if (data.status === 'calling' && data.to === currentUser && !currentCall) {
-                    currentCall = data;
-                    isCallInitiator = false;
-                    incomingCallName.textContent = data.from;
-                    incomingCallAvatar.textContent = data.from.charAt(0).toUpperCase();
-                    incomingCallModal.classList.add('active');
-                    playRingtone();
-                }
-                
-                // Отменен
-                if (data.status === 'cancelled' && currentCall) {
-                    endCall();
-                    showNotification('Звонок отменен');
-                }
-                
-                // Отклонен
-                if (data.status === 'declined' && isCallInitiator) {
-                    endCall();
-                    showNotification('Звонок отклонен');
-                }
-                
-                // Принят - начинаем WebRTC
-                if (data.status === 'accepted' && isCallInitiator) {
-                    callStatus.textContent = 'Соединение...';
-                    await createOffer();
-                }
-                
-                // Получили offer
-                if (data.offer && !isCallInitiator && peerConnection) {
-                    await handleOffer(data.offer);
-                }
-                
-                // Получили answer
-                if (data.answer && isCallInitiator && peerConnection) {
-                    await handleAnswer(data.answer);
-                }
-                
-                // Получили ICE
-                if (data.iceCandidate && peerConnection) {
-                    try {
-                        await peerConnection.addIceCandidate(new RTCIceCandidate(data.iceCandidate));
-                    } catch (e) {}
-                }
-            });
-        }
         
         // ==================== GIFT SYSTEM ====================
         
@@ -7089,184 +7245,6 @@ async function loadUserGiftsDirectly(username) {
         return []; // Возвращаем пустой массив при ошибке
     }
 }
-        
-        async function initPeerConnection() {
-            peerConnection = new RTCPeerConnection(iceServers);
-            
-            // Создаем аудио элемент для remote
-            if (!remoteAudio) {
-                remoteAudio = new Audio();
-                remoteAudio.autoplay = true;
-            }
-            
-            peerConnection.ontrack = (e) => {
-                console.log('Remote audio received');
-                remoteAudio.srcObject = e.streams[0];
-                callStatus.textContent = 'Разговор';
-            };
-            
-            peerConnection.onicecandidate = (e) => {
-                if (e.candidate && currentCall) {
-                    const target = isCallInitiator ? currentCall.to : currentCall.from;
-                    database.ref('calls/' + encodeURIComponent(target) + '/iceCandidate').set({
-                        candidate: e.candidate.candidate,
-                        sdpMid: e.candidate.sdpMid,
-                        sdpMLineIndex: e.candidate.sdpMLineIndex
-                    });
-                }
-            };
-            
-            peerConnection.onconnectionstatechange = () => {
-                console.log('State:', peerConnection.connectionState);
-                if (peerConnection.connectionState === 'connected') {
-                    callStatus.textContent = 'Разговор';
-                }
-                if (peerConnection.connectionState === 'failed' || peerConnection.connectionState === 'disconnected') {
-                    endCall();
-                }
-            };
-        }
-        
-        async function createOffer() {
-            try {
-                const offer = await peerConnection.createOffer();
-                await peerConnection.setLocalDescription(offer);
-                await database.ref('calls/' + encodeURIComponent(currentCall.to)).update({ offer: offer });
-            } catch (err) {
-                console.error('Offer error:', err);
-            }
-        }
-        
-        async function handleOffer(offer) {
-            try {
-                await peerConnection.setRemoteDescription(new RTCSessionDescription(offer));
-                const answer = await peerConnection.createAnswer();
-                await peerConnection.setLocalDescription(answer);
-                await database.ref('calls/' + encodeURIComponent(currentUser)).update({ answer: answer });
-            } catch (err) {
-                console.error('Handle offer error:', err);
-            }
-        }
-        
-        async function handleAnswer(answer) {
-            try {
-                await peerConnection.setRemoteDescription(new RTCSessionDescription(answer));
-            } catch (err) {
-                console.error('Handle answer error:', err);
-            }
-        }
-        
-        async function acceptCall() {
-            stopRingtone();
-            incomingCallModal.classList.remove('active');
-            
-            showCallUI(currentCall.from, 'audio');
-            callStatus.textContent = 'Соединение...';
-            
-            try {
-                // Инициализируем WebRTC и получаем микрофон ДО обновления статуса
-                await initPeerConnection();
-                
-                // Получаем микрофон
-                localStream = await navigator.mediaDevices.getUserMedia({ audio: true, video: false });
-                localStream.getTracks().forEach(track => peerConnection.addTrack(track, localStream));
-                
-                // Проверяем, есть ли уже offer от звонящего
-                const callSnapshot = await database.ref('calls/' + encodeURIComponent(currentUser)).once('value');
-                const callData = callSnapshot.val();
-                if (callData && callData.offer) {
-                    // Если offer уже есть, сразу обрабатываем его
-                    await handleOffer(callData.offer);
-                }
-                
-                // Теперь, когда мы готовы принять offer, обновляем статус
-                await database.ref('calls/' + encodeURIComponent(currentUser)).update({ status: 'accepted' });
-                
-            } catch (err) {
-                console.error('Accept error:', err);
-                showNotification('Ошибка доступа к микрофону');
-                endCall();
-            }
-        }
-        
-        async function declineCall() {
-            stopRingtone();
-            incomingCallModal.classList.remove('active');
-            await database.ref('calls/' + encodeURIComponent(currentUser)).update({ status: 'declined' });
-            setTimeout(() => database.ref('calls/' + encodeURIComponent(currentUser)).remove(), 1000);
-            currentCall = null;
-        }
-        
-        async function endCall() {
-            if (localStream) {
-                localStream.getTracks().forEach(t => t.stop());
-                localStream = null;
-            }
-            if (peerConnection) {
-                peerConnection.close();
-                peerConnection = null;
-            }
-            if (remoteAudio) {
-                remoteAudio.srcObject = null;
-            }
-            callModal.classList.remove('active');
-            incomingCallModal.classList.remove('active');
-            stopRingtone();
-            
-            if (currentCall) {
-                const path = isCallInitiator ? 'calls/' + encodeURIComponent(currentCall.to) : 'calls/' + encodeURIComponent(currentUser);
-                await database.ref(path).remove();
-            }
-            
-            currentCall = null;
-            isCallInitiator = false;
-            isAudioMuted = false;
-        }
-        
-        function showCallUI(name, type) {
-            callName.textContent = name;
-            callAvatar.textContent = name.charAt(0).toUpperCase();
-            callVideos.style.display = 'none';
-            callAudioOnly.style.display = 'flex';
-            callModal.classList.add('active');
-        }
-        
-        function toggleMute() {
-            if (!localStream) return;
-            const track = localStream.getAudioTracks()[0];
-            if (track) {
-                track.enabled = !track.enabled;
-                isAudioMuted = !track.enabled;
-                document.getElementById('call-mute-btn').classList.toggle('muted', isAudioMuted);
-                document.getElementById('call-mute-icon').textContent = isAudioMuted ? '🎤❌' : '🎤';
-            }
-        }
-        
-        let ringtoneInterval = null;
-        function playRingtone() {
-            try {
-                const AudioContext = window.AudioContext || window.webkitAudioContext;
-                const ctx = new AudioContext();
-                ringtoneInterval = setInterval(() => {
-                    const osc = ctx.createOscillator();
-                    const gain = ctx.createGain();
-                    osc.connect(gain);
-                    gain.connect(ctx.destination);
-                    osc.frequency.value = 440;
-                    gain.gain.setValueAtTime(0.3, ctx.currentTime);
-                    gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.5);
-                    osc.start(ctx.currentTime);
-                    osc.stop(ctx.currentTime + 0.5);
-                }, 1000);
-            } catch (e) {}
-        }
-        
-        function stopRingtone() {
-            if (ringtoneInterval) {
-                clearInterval(ringtoneInterval);
-                ringtoneInterval = null;
-            }
-        }
         // ==================== СИСТЕМА ПОДАРКОВ И ВАЛЮТЫ ====================
 
 // Глобальные переменные
@@ -7624,14 +7602,6 @@ async function exchangeGift(gift) {
     }
 }
         
-        document.getElementById('audio-call-btn').addEventListener('click', startAudioCall);
-        document.getElementById('call-accept-btn').addEventListener('click', acceptCall);
-        document.getElementById('call-decline-btn').addEventListener('click', declineCall);
-        document.getElementById('call-end-btn').addEventListener('click', endCall);
-        document.getElementById('call-mute-btn').addEventListener('click', toggleMute);
-        // Кнопка видео скрыта - только аудио звонки
-        
-        initCallListeners();
     </script>
 </body>
 </html>
