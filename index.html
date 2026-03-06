@@ -7842,195 +7842,75 @@ window.addEventListener('scroll', function() {
   }
   lastScrollTop = currentScroll;
 }, { passive: false });
-
-    </script>
-    <!-- ==================== ONESIGNAL УВЕДОМЛЕНИЯ ==================== -->
-<script>
-// Запрашиваем разрешение сразу при загрузке
-(function requestNotificationPermission() {
-    if (!('Notification' in window)) {
-        console.log('❌ Браузер не поддерживает уведомления');
-        return;
-    }
     
-    console.log('🔔 Текущий статус уведомлений:', Notification.permission);
-    
-    if (Notification.permission === 'default') {
-        console.log('📢 Запрашиваем разрешение на уведомления...');
-        Notification.requestPermission().then(permission => {
-            if (permission === 'granted') {
-                console.log('✅ Разрешение получено!');
-                new Notification('✅ Уведомления включены!', {
-                    body: 'Теперь вы будете получать уведомления о новых сообщениях',
-                    icon: 'icon-192x192.png'
-                });
-            }
-        });
-    } else if (Notification.permission === 'granted') {
-        console.log('✅ Уведомления уже разрешены');
-        setTimeout(() => {
-            new Notification('🔔 Twin Messenger', {
-                body: 'Уведомления работают правильно!',
-                icon: 'icon-192x192.png'
-            });
-        }, 3000);
-    }
-})();
-
-// Подписка пользователя при входе
-async function subscribeToOneSignal(userId) {
-    // Ждем загрузку OneSignal
-    let attempts = 0;
-    while (!window.OneSignal && attempts < 20) {
-        await new Promise(r => setTimeout(r, 500));
-        attempts++;
-    }
-    
-    if (!window.OneSignal) {
-        console.log('❌ OneSignal не загружен');
-        return false;
-    }
-    
-    try {
-        console.log('📡 Подключаем пользователя к OneSignal:', userId);
-        await OneSignal.login(userId);
-        
-        const playerId = await OneSignal.User.pushSubscription.id;
-        console.log('✅ Player ID получен:', playerId);
-        
-        if (database) {
-            await database.ref('users/' + encodeURIComponent(userId) + '/onesignal').set({
-                playerId: playerId,
-                subscribed: true,
-                subscribedAt: Date.now()
-            });
-        }
-        
-        return true;
-    } catch (error) {
-        console.error('❌ Ошибка подписки OneSignal:', error);
-        return false;
-    }
-}
-
-// Функция для тестирования
-window.testNotification = function() {
-    if (Notification.permission === 'granted') {
-        new Notification('🔔 ТЕСТ', {
-            body: 'Уведомления работают!',
-            icon: 'icon-192x192.png'
-        });
-    } else {
-        Notification.requestPermission();
-    }
-};
-
-// Подписываем пользователя при входе
-if (typeof initApp === 'function') {
-    const originalInit = initApp;
-    initApp = async function() {
-        await originalInit();
-        if (currentUser) {
-            setTimeout(() => subscribeToOneSignal(currentUser), 3000);
-        }
-    };
-}
-
-console.log('🔔 Система уведомлений готова');
-console.log('💡 Для теста: testNotification()');
-
 </script>
-<!-- ==================== ФОНОВЫЕ УВЕДОМЛЕНИЯ ONESIGNAL ==================== -->
+<!-- ==================== PUSH-УВЕДОМЛЕНИЯ ONESIGNAL ==================== -->
+<script src="https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js" defer></script>
 <script>
-// Проверяем поддержку Service Worker
-if ('serviceWorker' in navigator && 'PushManager' in window) {
-    console.log('✅ Service Worker и Push поддерживаются');
+window.OneSignalDeferred = window.OneSignalDeferred || [];
+OneSignalDeferred.push(async function(OneSignal) {
+    await OneSignal.init({
+        appId: "3ffd17da-2e0f-4504-ab59-47e15e39f5d2",
+        safari_web_id: "web.onesignal.auto.6a13c381-7602-4e1d-b2a0-1098f769d9cc",
+        notifyButton: {
+            enable: true,
+            size: 'medium',
+            showCredit: false,
+        },
+        // ВАЖНО: настройки для фоновых уведомлений
+        autoRegister: true,
+        autoResubscribe: true,
+        persistNotification: true,
+        welcomeNotification: {
+            title: "Twin",
+            message: "Уведомления включены! 🔔",
+            url: "https://russiastarscom.github.io/mesenger/"
+        },
+        // Разрешаем уведомления даже когда браузер закрыт
+        serviceWorkerParam: { scope: '/' },
+        serviceWorkerPath: 'OneSignalSDKWorker.js',
+    });
     
-    // Регистрируем Service Worker если еще не зарегистрирован
-    navigator.serviceWorker.register('service-worker.js')
-        .then(registration => {
-            console.log('✅ Service Worker зарегистрирован:', registration);
-            
-            // Подписываемся на push-уведомления
-            return registration.pushManager.getSubscription()
-                .then(subscription => {
-                    if (subscription) {
-                        console.log('✅ Уже подписаны на push');
-                        return subscription;
-                    }
-                    
-                    // Получаем публичный ключ VAPID из OneSignal
-                    const vapidPublicKey = 'YOUR_VAPID_PUBLIC_KEY'; // Замените на ваш ключ
-                    const convertedKey = urlBase64ToUint8Array(vapidPublicKey);
-                    
-                    return registration.pushManager.subscribe({
-                        userVisibleOnly: true,
-                        applicationServerKey: convertedKey
-                    });
-                });
-        })
-        .then(subscription => {
-            console.log('✅ Подписка на push получена:', subscription);
-            
-            // Отправляем подписку на сервер (через OneSignal)
-            if (window.OneSignal) {
-                console.log('✅ OneSignal готов к фоновым уведомлениям');
-            }
-        })
-        .catch(error => {
-            console.error('❌ Ошибка регистрации push:', error);
-        });
-} else {
-    console.log('❌ Service Worker или Push не поддерживаются');
-}
-
-// Вспомогательная функция для конвертации ключа
-function urlBase64ToUint8Array(base64String) {
-    const padding = '='.repeat((4 - base64String.length % 4) % 4);
-    const base64 = (base64String + padding)
-        .replace(/\-/g, '+')
-        .replace(/_/g, '/');
+    console.log('✅ OneSignal PUSH готов');
     
-    const rawData = window.atob(base64);
-    const outputArray = new Uint8Array(rawData.length);
-    
-    for (let i = 0; i < rawData.length; ++i) {
-        outputArray[i] = rawData.charCodeAt(i);
+    // Если пользователь вошел - подписываем
+    if (currentUser) {
+        setTimeout(() => {
+            OneSignal.login(currentUser);
+            console.log('👤 Пользователь подписан на PUSH');
+        }, 2000);
     }
-    return outputArray;
-}
+});
 
-// Функция для отправки фонового уведомления через OneSignal API
-async function sendBackgroundNotification(toUser, fromUser, message) {
+// Функция для отправки PUSH (работает даже когда браузер закрыт)
+async function sendPushNotification(toUser, fromUser, message) {
     if (!toUser || !fromUser || toUser === fromUser) return;
     
     try {
-        // Получаем имя отправителя
-        const snapshot = await database.ref('users/' + encodeURIComponent(fromUser)).once('value');
-        const userData = snapshot.val();
-        const senderName = userData ? (userData.name || fromUser) : fromUser;
+        // Получаем Player ID получателя
+        const snapshot = await database.ref('users/' + encodeURIComponent(toUser) + '/onesignal').once('value');
+        const playerData = snapshot.val();
         
-        console.log(`📨 Отправляем фоновое уведомление от ${senderName} пользователю ${toUser}`);
-        
-        // Получаем Player ID получателя из Firebase
-        const receiverSnapshot = await database.ref('users/' + encodeURIComponent(toUser) + '/onesignal').once('value');
-        const receiverData = receiverSnapshot.val();
-        
-        if (!receiverData || !receiverData.playerId) {
-            console.log('⚠️ Получатель не подписан на уведомления');
+        if (!playerData || !playerData.playerId) {
+            console.log('⚠️ Пользователь не подписан на PUSH');
             return;
         }
         
-        // Отправляем уведомление через OneSignal API (работает даже когда приложение закрыто)
+        // Получаем имя отправителя
+        const userSnapshot = await database.ref('users/' + encodeURIComponent(fromUser)).once('value');
+        const userData = userSnapshot.val();
+        const senderName = userData ? (userData.name || fromUser) : fromUser;
+        
+        // Отправляем PUSH через OneSignal API
         const response = await fetch('https://onesignal.com/api/v1/notifications', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                'Authorization': 'Basic YOUR_ONESIGNAL_REST_API_KEY' // Получите в настройках OneSignal
+                'Authorization': 'Basic YOUR_ONESIGNAL_REST_API_KEY' // ЗАМЕНИТЕ!
             },
             body: JSON.stringify({
-                app_id: '3ffd17da-2e0f-4504-ab59-47e15e39f5d2',
-                include_player_ids: [receiverData.playerId],
+                app_id: "3ffd17da-2e0f-4504-ab59-47e15e39f5d2",
+                include_player_ids: [playerData.playerId],
                 headings: { en: senderName, ru: senderName },
                 contents: { 
                     en: message.length > 80 ? message.substring(0, 80) + '...' : message,
@@ -8039,48 +7919,65 @@ async function sendBackgroundNotification(toUser, fromUser, message) {
                 data: {
                     type: 'new_message',
                     from: fromUser,
-                    to: toUser
+                    to: toUser,
+                    url: '/'
                 },
-                web_url: window.location.origin,
-                web_buttons: [
-                    {
-                        id: 'open-chat',
-                        text: 'Открыть чат',
-                        icon: window.location.origin + '/icon-192x192.png'
-                    }
-                ],
+                web_url: 'https://russiastarscom.github.io/mesenger/',
+                web_buttons: [{
+                    id: 'open-chat',
+                    text: 'Открыть чат',
+                    icon: 'https://russiastarscom.github.io/mesenger/icon-192x192.png'
+                }],
                 priority: 10,
-                ttl: 86400 // 24 часа
+                ttl: 86400, // 24 часа
+                delayed_option: 'timezone', // Учитывает часовой пояс
+                delivery_time_of_day: '9:00AM' // Можно настроить
             })
         });
         
         const result = await response.json();
-        console.log('✅ Фоновое уведомление отправлено:', result);
+        console.log('✅ PUSH уведомление отправлено:', result);
         
     } catch (error) {
-        console.error('❌ Ошибка отправки фонового уведомления:', error);
+        console.error('❌ Ошибка отправки PUSH:', error);
     }
 }
 
-// Перехватываем отправку сообщений для фоновых уведомлений
-if (typeof sendMessage === 'function') {
-    const originalSendMessage = sendMessage;
-    sendMessage = async function() {
-        const text = messageText?.value.trim();
-        const receiver = currentChat;
-        
-        console.log('📤 Отправка сообщения:', {text, receiver, type: currentChatType});
-        
-        await originalSendMessage();
-        
-        if (currentChatType === 'user' && text && receiver && receiver !== currentUser) {
-            console.log('🔔 Будет отправлено фоновое уведомление получателю:', receiver);
-            setTimeout(() => {
-                sendBackgroundNotification(receiver, currentUser, text);
-            }, 500);
-        }
-    };
-    console.log('✅ sendMessage перехвачен для фоновых уведомлений');
-}
+// Сохраняем Player ID при входе
+const originalInit = initApp;
+initApp = async function() {
+    await originalInit();
+    
+    if (currentUser && window.OneSignal) {
+        setTimeout(async () => {
+            try {
+                const playerId = await OneSignal.User.pushSubscription.id;
+                await database.ref('users/' + encodeURIComponent(currentUser) + '/onesignal').set({
+                    playerId: playerId,
+                    subscribed: true,
+                    subscribedAt: Date.now()
+                });
+                console.log('✅ Player ID сохранен');
+            } catch (e) {
+                console.error('❌ Ошибка сохранения Player ID:', e);
+            }
+        }, 3000);
+    }
+};
+
+// Перехватываем отправку сообщений
+const originalSendMessage = sendMessage;
+sendMessage = async function() {
+    const text = messageText?.value.trim();
+    const receiver = currentChat;
+    
+    await originalSendMessage();
+    
+    if (currentChatType === 'user' && text && receiver && receiver !== currentUser) {
+        setTimeout(() => {
+            sendPushNotification(receiver, currentUser, text);
+        }, 500);
+    }
+};
 </script>
 </html>
