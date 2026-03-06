@@ -4358,10 +4358,11 @@ function trackUserStatus() {
                     
                     
                     
-                    if (displayText) {
-                        messageContentHtml += `<div>${encryptedBadge}${escapeHtml(displayText)}</div>`;
-                    }
-        
+                    // Просто показываем текст сообщения
+                if (message.text) {
+                    messageContentHtml += `<div>${escapeHtml(message.text)}</div>`;
+}
+         
                     messagesHTML += `
                         <div class="message ${isSent ? 'sent' : 'received'}">
                             ${senderName}
