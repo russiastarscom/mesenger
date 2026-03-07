@@ -8133,615 +8133,661 @@
         }, { passive: false });
 
     </script>
-    <!-- ==================== PUSH-УВЕДОМЛЕНИЯ ONESIGNAL ==================== -->
-    <script src="https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js" defer></script>
-    <script>
-        window.OneSignalDeferred = window.OneSignalDeferred || [];
-        OneSignalDeferred.push(async function (OneSignal) {
-            await OneSignal.init({
-                appId: "3ffd17da-2e0f-4504-ab59-47e15e39f5d2",
-                safari_web_id: "web.onesignal.auto.6a13c381-7602-4e1d-b2a0-1098f769d9cc",
-                notifyButton: {
-                    enable: true,
-                    size: 'medium',
-                    showCredit: false,
-                },
-                // ВАЖНО: настройки для фоновых уведомлений
-                autoRegister: true,
-                autoResubscribe: true,
-                persistNotification: true,
-                welcomeNotification: {
-                    title: "Twin",
-                    message: "Уведомления включены! 🔔",
-                    url: "https://russiastarscom.github.io/mesenger/"
-                },
-                // Разрешаем уведомления даже когда браузер закрыт
-                serviceWorkerParam: { scope: '/' },
-                serviceWorkerPath: 'OneSignalSDKWorker.js',
-            });
-
-            console.log('✅ OneSignal PUSH готов');
-
-            // Если пользователь вошел - подписываем
-            if (currentUser) {
-                setTimeout(() => {
-                    OneSignal.login(currentUser);
-                    console.log('👤 Пользователь подписан на PUSH');
-                }, 2000);
-            }
-        });
-
-        // Функция для отправки PUSH (работает даже когда браузер закрыт)
-        async function sendPushNotification(toUser, fromUser, message) {
-            if (!toUser || !fromUser || toUser === fromUser) return;
-
-            try {
-                // Получаем Player ID получателя
-                const snapshot = await database.ref('users/' + encodeURIComponent(toUser) + '/onesignal').once('value');
-                const playerData = snapshot.val();
-
-                if (!playerData || !playerData.playerId) {
-                    console.log('⚠️ Пользователь не подписан на PUSH');
-                    return;
-                }
-
-                // Получаем имя отправителя
-                const userSnapshot = await database.ref('users/' + encodeURIComponent(fromUser)).once('value');
-                const userData = userSnapshot.val();
-                const senderName = userData ? (userData.name || fromUser) : fromUser;
-
-                // Отправляем PUSH через OneSignal API
-                const response = await fetch('https://onesignal.com/api/v1/notifications', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': 'Basic os_v2_app_h76rpwrob5cqjk2zi7qv4opv2j5ozbhv7fguitv5ocwbtnk3uj32vh5swwgboagtbyc2thkc6d74csobi3lxeoebbtsse3opk2ilshy' // ЗАМЕНИТЕ!
-                    },
-                    body: JSON.stringify({
-                        app_id: "3ffd17da-2e0f-4504-ab59-47e15e39f5d2",
-                        include_player_ids: [playerData.playerId],
-                        headings: { en: senderName, ru: senderName },
-                        contents: {
-                            en: message.length > 80 ? message.substring(0, 80) + '...' : message,
-                            ru: message.length > 80 ? message.substring(0, 80) + '...' : message
-                        },
-                        data: {
-                            type: 'new_message',
-                            from: fromUser,
-                            to: toUser,
-                            url: '/'
-                        },
-                        web_url: 'https://russiastarscom.github.io/mesenger/',
-                        web_buttons: [{
-                            id: 'open-chat',
-                            text: 'Открыть чат',
-                            icon: 'https://russiastarscom.github.io/mesenger/icon-192x192.png'
-                        }],
-                        priority: 10,
-                        ttl: 86400, // 24 часа
-                        delayed_option: 'timezone', // Учитывает часовой пояс
-                        delivery_time_of_day: '9:00AM' // Можно настроить
-                    })
-                });
-
-                const result = await response.json();
-                console.log('✅ PUSH уведомление отправлено:', result);
-
-            } catch (error) {
-                console.error('❌ Ошибка отправки PUSH:', error);
-            }
-        }
-
-        // Сохраняем Player ID при входе
-        const originalInit = initApp;
-        initApp = async function () {
-            await originalInit();
-
-            if (currentUser && window.OneSignal) {
-                setTimeout(async () => {
-                    try {
-                        const playerId = await OneSignal.User.pushSubscription.id;
-                        await database.ref('users/' + encodeURIComponent(currentUser) + '/onesignal').set({
-                            playerId: playerId,
-                            subscribed: true,
-                            subscribedAt: Date.now()
-                        });
-                        console.log('✅ Player ID сохранен');
-                    } catch (e) {
-                        console.error('❌ Ошибка сохранения Player ID:', e);
-                    }
-                }, 3000);
-            }
-        };
-
-        // Перехватываем отправку сообщений
-        const originalSendMessage = sendMessage;
-        sendMessage = async function () {
-            const text = messageText?.value.trim();
-            const receiver = currentChat;
-
-            await originalSendMessage();
-
-            if (currentChatType === 'user' && text && receiver && receiver !== currentUser) {
-                setTimeout(() => {
-                    sendPushNotification(receiver, currentUser, text);
-                }, 500);
-            }
-        };
-        // ==================== СИСТЕМА КОММЕНТАРИЕВ ДЛЯ КАНАЛОВ ====================
-
-        // Переменные для комментариев
-        let currentChannelForComments = null;
-        let commentsListeners = {};
-
-        // Функция для открытия модального окна комментариев
-        async function openChannelComments(channelId) {
-            currentChannelForComments = channelId;
-
-            // Загружаем информацию о канале
-            const channel = channels.find(c => c.id === channelId);
-            if (!channel) return;
-
-            const modal = document.getElementById('channel-comments-modal');
-            const title = document.getElementById('comments-modal-title');
-            title.textContent = `Комментарии к каналу "${channel.name}"`;
-
-            modal.classList.add('active');
-
-            // Загружаем комментарии
-            await loadComments(channelId);
-
-            // Очищаем поле ввода
-            document.getElementById('comment-input').value = '';
-            document.getElementById('comment-input').focus();
-
-            // Начинаем слушать новые комментарии в реальном времени
-            listenForNewComments(channelId);
-        }
-
-        // Закрытие модального окна комментариев
-        function closeChannelComments() {
-            const modal = document.getElementById('channel-comments-modal');
-            modal.classList.remove('active');
-
-            // Отключаем слушатель
-            if (currentChannelForComments && commentsListeners[currentChannelForComments]) {
-                commentsListeners[currentChannelForComments]();
-                delete commentsListeners[currentChannelForComments];
-            }
-
-            currentChannelForComments = null;
-        }
-
-        // Загрузка комментариев
-        async function loadComments(channelId, limit = 20, lastCommentId = null) {
-            try {
-                let query = database.ref('channelComments/' + channelId).orderByChild('timestamp');
-
-                if (lastCommentId) {
-                    const lastCommentSnapshot = await database.ref('channelComments/' + channelId + '/' + lastCommentId).once('value');
-                    const lastComment = lastCommentSnapshot.val();
-                    if (lastComment) {
-                        query = query.endAt(lastComment.timestamp).limitToLast(limit + 1);
-                    }
-                } else {
-                    query = query.limitToLast(limit);
-                }
-
-                const snapshot = await query.once('value');
-                const comments = snapshot.val();
-
-                displayComments(comments, channelId, limit, lastCommentId);
-            } catch (error) {
-                console.error('Ошибка загрузки комментариев:', error);
-                document.getElementById('comments-container').innerHTML = '<div style="text-align: center; color: var(--danger-color); padding: 20px;">Ошибка загрузки комментариев</div>';
-            }
-        }
-
-        // Отображение комментариев
-        function displayComments(comments, channelId, limit, lastCommentId) {
-            const container = document.getElementById('comments-container');
-
-            if (!comments || Object.keys(comments).length === 0) {
-                container.innerHTML = '<div style="text-align: center; color: var(--text-light); padding: 20px;">💬 Пока нет комментариев. Будьте первым!</div>';
-                return;
-            }
-
-            // Преобразуем в массив и сортируем по времени (новые внизу)
-            const commentsArray = Object.entries(comments)
-                .map(([id, comment]) => ({ id, ...comment }))
-                .filter(comment => !comment.parentId) // Только основные комментарии, без ответов
-                .sort((a, b) => a.timestamp - b.timestamp);
-
-            let html = '';
-
-            if (commentsArray.length === limit && !lastCommentId) {
-                html += '<div class="load-more-comments" id="load-more-comments">⬆️ Загрузить предыдущие комментарии</div>';
-            }
-
-            commentsArray.forEach(comment => {
-                html += renderComment(comment, channelId);
-
-                // Добавляем ответы, если есть
-                if (comment.replies) {
-                    const replies = Object.entries(comment.replies)
-                        .map(([id, reply]) => ({ id, ...reply }))
-                        .sort((a, b) => a.timestamp - b.timestamp);
-
-                    if (replies.length > 0) {
-                        html += '<div class="replies-container">';
-                        replies.forEach(reply => {
-                            html += renderReply(reply, channelId, comment.id);
-                        });
-                        html += '</div>';
-                    }
-                }
-            });
-
-            container.innerHTML = html;
-
-            // Добавляем обработчик для загрузки предыдущих комментариев
-            const loadMoreBtn = document.getElementById('load-more-comments');
-            if (loadMoreBtn) {
-                loadMoreBtn.onclick = () => loadMoreComments(channelId, commentsArray[0]?.id);
-            }
-        }
-
-        // Рендер отдельного комментария
-        function renderComment(comment, channelId) {
-            const date = new Date(comment.timestamp).toLocaleString('ru-RU', {
-                day: 'numeric',
-                month: 'short',
-                hour: '2-digit',
-                minute: '2-digit'
-            });
-
-            const isLiked = comment.likes && comment.likes[currentUser];
-            const likeCount = comment.likes ? Object.keys(comment.likes).length : 0;
-
-            return `
-        <div class="comment-item" data-comment-id="${comment.id}">
-            <div class="comment-header">
-                <div class="comment-author" onclick="openUserProfile('${comment.author}')">
-                    <span class="comment-author-emoji">${comment.authorEmoji || '👤'}</span>
-                    <span>${comment.authorName || comment.author}</span>
-                </div>
-                <div class="comment-time">${date}</div>
-            </div>
-            <div class="comment-text">${escapeHtml(comment.text)}</div>
-            <div class="comment-actions">
-                <button class="comment-action-btn like-btn ${isLiked ? 'liked' : ''}" 
-                        onclick="toggleCommentLike('${channelId}', '${comment.id}')">
-                    ❤️ ${likeCount > 0 ? likeCount : ''}
-                </button>
-                <button class="comment-action-btn reply-btn" onclick="showReplyForm('${channelId}', '${comment.id}')">
-                    💬 Ответить
-                </button>
-                ${comment.author === currentUser ? `
-                    <button class="comment-action-btn" onclick="deleteComment('${channelId}', '${comment.id}')">
-                        🗑️ Удалить
-                    </button>
-                ` : ''}
-            </div>
-            <div class="reply-form" id="reply-form-${comment.id}" style="display: none;">
-                <input type="text" class="reply-input" id="reply-input-${comment.id}" placeholder="Ваш ответ...">
-                <button class="reply-send-btn" onclick="sendReply('${channelId}', '${comment.id}')">Отправить</button>
-            </div>
-        </div>
-    `;
-        }
-
-        // Рендер ответа на комментарий
-        function renderReply(reply, channelId, commentId) {
-            const date = new Date(reply.timestamp).toLocaleString('ru-RU', {
-                day: 'numeric',
-                month: 'short',
-                hour: '2-digit',
-                minute: '2-digit'
-            });
-
-            return `
-        <div class="reply-item" data-reply-id="${reply.id}">
-            <div class="reply-header">
-                <div class="reply-author" onclick="openUserProfile('${reply.author}')">
-                    <span>${reply.authorEmoji || '👤'}</span>
-                    <span>${reply.authorName || reply.author}</span>
-                </div>
-                <div class="comment-time">${date}</div>
-                ${reply.author === currentUser ? `
-                    <button class="comment-action-btn" onclick="deleteReply('${channelId}', '${commentId}', '${reply.id}')" style="margin-left: auto;">🗑️</button>
-                ` : ''}
-            </div>
-            <div class="reply-text">${escapeHtml(reply.text)}</div>
-        </div>
-    `;
-        }
-
-        // Отправка нового комментария
-        async function sendComment() {
-            const input = document.getElementById('comment-input');
-            const text = input.value.trim();
-
-            if (!text || !currentChannelForComments) return;
-
-            try {
-                // Получаем данные автора
-                const userSnapshot = await database.ref('users/' + encodeURIComponent(currentUser)).once('value');
-                const userData = userSnapshot.val();
-
-                const comment = {
-                    author: currentUser,
-                    authorName: userData ? userData.name : currentUser,
-                    authorEmoji: userData ? userData.emoji : '👤',
-                    text: text,
-                    timestamp: Date.now(),
-                    likes: {}
-                };
-
-                await database.ref('channelComments/' + currentChannelForComments).push(comment);
-
-                input.value = '';
-
-                // Уведомляем создателя канала о новом комментарии
-                const channel = channels.find(c => c.id === currentChannelForComments);
-                if (channel && channel.creator !== currentUser) {
-                    sendNotificationToUser(channel.creator, {
-                        type: 'new_comment',
-                        channelName: channel.name,
-                        channelId: currentChannelForComments,
-                        author: currentUser,
-                        text: text
-                    });
-                }
-            } catch (error) {
-                showNotification('Ошибка: ' + error.message);
-            }
-        }
-
-        // Отправка ответа на комментарий
-        async function sendReply(channelId, commentId) {
-            const input = document.getElementById('reply-input-' + commentId);
-            const text = input.value.trim();
-
-            if (!text) return;
-
-            try {
-                const userSnapshot = await database.ref('users/' + encodeURIComponent(currentUser)).once('value');
-                const userData = userSnapshot.val();
-
-                const reply = {
-                    author: currentUser,
-                    authorName: userData ? userData.name : currentUser,
-                    authorEmoji: userData ? userData.emoji : '👤',
-                    text: text,
-                    timestamp: Date.now()
-                };
-
-                await database.ref('channelComments/' + channelId + '/' + commentId + '/replies').push(reply);
-
-                // Скрываем форму
-                document.getElementById('reply-form-' + commentId).style.display = 'none';
-
-                // Уведомляем автора комментария об ответе
-                const commentSnapshot = await database.ref('channelComments/' + channelId + '/' + commentId).once('value');
-                const comment = commentSnapshot.val();
-                if (comment && comment.author !== currentUser) {
-                    const channel = channels.find(c => c.id === channelId);
-                    sendNotificationToUser(comment.author, {
-                        type: 'reply_to_comment',
-                        channelName: channel ? channel.name : 'канале',
-                        channelId: channelId,
-                        author: currentUser,
-                        text: text
-                    });
-                }
-            } catch (error) {
-                showNotification('Ошибка: ' + error.message);
-            }
-        }
-
-        // Показать форму ответа
-        function showReplyForm(channelId, commentId) {
-            const form = document.getElementById('reply-form-' + commentId);
-            form.style.display = 'flex';
-            document.getElementById('reply-input-' + commentId).focus();
-        }
-
-        // Лайк/дизлайк комментария
-        async function toggleCommentLike(channelId, commentId) {
-            try {
-                const likeRef = database.ref('channelComments/' + channelId + '/' + commentId + '/likes/' + currentUser);
-                const snapshot = await likeRef.once('value');
-
-                if (snapshot.exists()) {
-                    await likeRef.remove();
-                } else {
-                    await likeRef.set(true);
-
-                    // Уведомление о лайке
-                    const commentSnapshot = await database.ref('channelComments/' + channelId + '/' + commentId).once('value');
-                    const comment = commentSnapshot.val();
-                    if (comment && comment.author !== currentUser) {
-                        const channel = channels.find(c => c.id === channelId);
-                        sendNotificationToUser(comment.author, {
-                            type: 'like_comment',
-                            channelName: channel ? channel.name : 'канале',
-                            author: currentUser
-                        });
-                    }
-                }
-
-                // Перезагружаем комментарии
-                await loadComments(channelId);
-            } catch (error) {
-                showNotification('Ошибка: ' + error.message);
-            }
-        }
-
-        // Удаление комментария
-        async function deleteComment(channelId, commentId) {
-            if (!confirm('Удалить этот комментарий?')) return;
-
-            try {
-                await database.ref('channelComments/' + channelId + '/' + commentId).remove();
-                await loadComments(channelId);
-            } catch (error) {
-                showNotification('Ошибка: ' + error.message);
-            }
-        }
-
-        // Удаление ответа
-        async function deleteReply(channelId, commentId, replyId) {
-            if (!confirm('Удалить этот ответ?')) return;
-
-            try {
-                await database.ref('channelComments/' + channelId + '/' + commentId + '/replies/' + replyId).remove();
-                await loadComments(channelId);
-            } catch (error) {
-                showNotification('Ошибка: ' + error.message);
-            }
-        }
-
-        // Загрузка предыдущих комментариев
-        async function loadMoreComments(channelId, lastCommentId) {
-            await loadComments(channelId, 20, lastCommentId);
-        }
-
-        // Слушаем новые комментарии в реальном времени
-        function listenForNewComments(channelId) {
-            if (commentsListeners[channelId]) {
-                commentsListeners[channelId]();
-            }
-
-            const callback = database.ref('channelComments/' + channelId).on('child_added', (snapshot) => {
-                // Если модальное окно открыто для этого канала, обновляем
-                if (currentChannelForComments === channelId) {
-                    loadComments(channelId);
-                }
-            });
-
-            commentsListeners[channelId] = () => {
-                database.ref('channelComments/' + channelId).off('child_added', callback);
-            };
-        }
-
-        // Вспомогательная функция для отправки уведомлений
-        async function sendNotificationToUser(username, notification) {
-            try {
-                await database.ref('users/' + encodeURIComponent(username) + '/notifications').push({
-                    ...notification,
-                    timestamp: Date.now(),
-                    read: false
-                });
-            } catch (error) {
-                console.error('Ошибка отправки уведомления:', error);
-            }
-        }
-
-        // Добавляем кнопку комментариев в заголовок канала
-        function addCommentsButtonToChannelHeader() {
-            const headerActions = document.querySelector('.chat-header-actions');
-            if (!headerActions) return;
-
-            // Удаляем старую кнопку если есть
-            const oldBtn = document.getElementById('channel-comments-btn');
-            if (oldBtn) oldBtn.remove();
-
-            // Создаем новую кнопку
-            const commentsBtn = document.createElement('button');
-            commentsBtn.id = 'channel-comments-btn';
-            commentsBtn.className = 'chat-header-btn';
-            commentsBtn.innerHTML = '💬';
-            commentsBtn.title = 'Комментарии к каналу';
-            commentsBtn.style.display = 'none';
-
-            commentsBtn.addEventListener('click', () => {
-                if (currentChannel && currentChatType === 'channel') {
-                    openChannelComments(currentChannel.id);
-                }
-            });
-
-            headerActions.appendChild(commentsBtn);
-        }
-
-        // Обновляем отображение кнопки комментариев при открытии канала
-        const originalOpenChannelChat = openChannelChat;
-        openChannelChat = function (channelId, channelName) {
-            originalOpenChannelChat(channelId, channelName);
-
-            // Показываем кнопку комментариев
-            const commentsBtn = document.getElementById('channel-comments-btn');
-            if (commentsBtn) {
-                commentsBtn.style.display = 'block';
-            }
-        };
-
-        // Добавляем обработчики событий
-        document.addEventListener('DOMContentLoaded', () => {
-            addCommentsButtonToChannelHeader();
-
-            // Закрытие модального окна
-            document.getElementById('close-comments-modal').addEventListener('click', closeChannelComments);
-
-            // Отправка комментария по Enter
-            document.getElementById('comment-input').addEventListener('keypress', (e) => {
-                if (e.key === 'Enter') {
-                    e.preventDefault();
-                    sendComment();
-                }
-            });
-
-            // Отправка комментария по кнопке
-            document.getElementById('send-comment-btn').addEventListener('click', sendComment);
-
-            // Закрытие по клику на фон
-            document.getElementById('channel-comments-modal').addEventListener('click', (e) => {
-                if (e.target === document.getElementById('channel-comments-modal')) {
-                    closeChannelComments();
-                }
-            });
-        });
-
-        // Делаем функции глобальными
-        window.openUserProfile = openUserProfile;
-        window.toggleCommentLike = toggleCommentLike;
-        window.showReplyForm = showReplyForm;
-        window.sendReply = sendReply;
-        window.deleteComment = deleteComment;
-        window.deleteReply = deleteReply;
-        // Тестовая функция для проверки PUSH
-window.testPush = async function() {
-    console.log('🔍 Тестирование PUSH уведомлений...');
     
-    if (!currentUser) {
-        alert('Сначала войдите в систему');
-        return;
-    }
-    
-    if (!window.OneSignal) {
-        alert('OneSignal не загружен!');
-        return;
-    }
-    
+    // ==================== PUSH-УВЕДОМЛЕНИЯ ONESIGNAL ====================
+    window.OneSignalDeferred = window.OneSignalDeferred || [];
+
+    // Функция для проверки существования файла
+    async function checkFileExists(url) {
     try {
-        const playerId = await OneSignal.User.pushSubscription.id;
-        console.log('📱 Ваш Player ID:', playerId);
-        
-        if (playerId) {
-            alert('Player ID: ' + playerId + '\n\nПроверьте консоль (F12)');
-            
-            // Тестовая отправка
-            await sendPushNotification(currentUser, 'system', '🔔 Тестовое уведомление');
-        } else {
-            alert('Player ID не получен. Проверьте разрешения на уведомления.');
-        }
-    } catch (e) {
-        console.error('❌ Ошибка:', e);
-        alert('Ошибка: ' + e.message);
+    const response = await fetch(url, { method: 'HEAD' });
+    return response.ok;
+    } catch {
+    return false;
     }
-};
+    }
 
-// Запустить тест можно командой в консоли: testPush()
+    // Инициализация OneSignal
+    OneSignalDeferred.push(async function (OneSignal) {
+    console.log('🔄 Инициализация OneSignal...');
+
+    try {
+    // Проверяем наличие файла OneSignalSDKWorker.js
+    const workerExists = await checkFileExists('/OneSignalSDKWorker.js');
+
+    if (!workerExists) {
+    console.warn('⚠️ Файл OneSignalSDKWorker.js не найден. PUSH уведомления могут не работать.');
+    console.warn('Создайте файл OneSignalSDKWorker.js в корне сайта с содержимым:');
+    console.warn('importScripts("https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.sw.js");');
+    }
+
+    await OneSignal.init({
+    appId: "3ffd17da-2e0f-4504-ab59-47e15e39f5d2",
+    safari_web_id: "web.onesignal.auto.6a13c381-7602-4e1d-b2a0-1098f769d9cc",
+    notifyButton: {
+    enable: true,
+    size: 'medium',
+    showCredit: false,
+    text: {
+    'tap-to-subscribe': 'Подписаться на уведомления',
+    'subscribe': 'Подписаться',
+    'unsubscribe': 'Отписаться'
+    }
+    },
+    autoRegister: true,
+    autoResubscribe: true,
+    persistNotification: true,
+    welcomeNotification: {
+    title: "Twin",
+    message: "Уведомления включены! 🔔",
+    url: window.location.origin
+    },
+    serviceWorkerParam: { scope: '/' },
+    serviceWorkerPath: 'OneSignalSDKWorker.js',
+    // Важно для работы когда браузер закрыт
+    allowLocalhostAsSecureOrigin: true,
+    });
+
+    console.log('✅ OneSignal инициализирован успешно');
+
+    // Если пользователь авторизован, сохраняем его ID
+    if (currentUser) {
+    setTimeout(async () => {
+    try {
+    // Проверяем, что OneSignal загрузился полностью
+    if (OneSignal.User && OneSignal.User.pushSubscription) {
+    const playerId = await OneSignal.User.pushSubscription.id;
+
+    if (playerId) {
+    console.log('📱 Player ID получен:', playerId);
+
+    // Сохраняем в Firebase
+    await database.ref('users/' + encodeURIComponent(currentUser) + '/onesignal').set({
+    playerId: playerId,
+    subscribed: true,
+    subscribedAt: Date.now(),
+    userAgent: navigator.userAgent
+    });
+
+    console.log('✅ Player ID сохранен в Firebase');
+    } else {
+    console.log('⚠️ Player ID еще не получен, пробуем позже');
+    }
+    }
+    } catch (e) {
+    console.error('❌ Ошибка сохранения Player ID:', e);
+    }
+    }, 5000); // Увеличил таймаут до 5 секунд
+    }
+
+    } catch (error) {
+    console.error('❌ Ошибка инициализации OneSignal:', error);
+    console.error('Детали ошибки:', error.message);
+    }
+    });
+
+    // Тестовая функция для проверки PUSH
+    window.testPush = async function() {
+    console.log('🔍 Тестирование PUSH уведомлений...');
+
+    if (!currentUser) {
+    alert('❌ Сначала войдите в систему');
+    return;
+    }
+
+    if (!window.OneSignal) {
+    alert('❌ OneSignal не загружен!');
+    return;
+    }
+
+    try {
+    // Ждем инициализацию OneSignal
+    await new Promise(resolve => setTimeout(resolve, 2000));
+
+    const oneSignal = await OneSignal;
+    const playerId = await oneSignal.User.pushSubscription.id;
+
+    if (playerId) {
+    console.log('📱 Ваш Player ID:', playerId);
+    alert(`✅ Player ID: ${playerId}\n\nPUSH уведомления работают!`);
+
+    // Тестовая отправка самому себе
+    await sendPushNotification(currentUser, 'system', '🔔 Это тестовое уведомление!');
+    } else {
+    alert('❌ Player ID не получен.\n\nПроверьте:\n1. Разрешения на уведомления\n2. Наличие файла
+    OneSignalSDKWorker.js\n3. Консоль (F12) для деталей');
+
+    // Проверяем статус разрешений
+    const permission = Notification.permission;
+    console.log('Статус разрешений:', permission);
+
+    if (permission !== 'granted') {
+    alert('⚠️ Разрешение на уведомления не получено. Нажмите "Разрешить" в браузере.');
+    await Notification.requestPermission();
+    }
+    }
+    } catch (e) {
+    console.error('❌ Ошибка:', e);
+    alert('❌ Ошибка: ' + e.message);
+    }
+    };
+
+    // Запустить тест можно командой в консоли: testPush()
+
+
+    // Сохраняем Player ID при входе
+    const originalInit = initApp;
+    initApp = async function () {
+    await originalInit();
+
+    if (currentUser && window.OneSignal) {
+    setTimeout(async () => {
+    try {
+    const playerId = await OneSignal.User.pushSubscription.id;
+    await database.ref('users/' + encodeURIComponent(currentUser) + '/onesignal').set({
+    playerId: playerId,
+    subscribed: true,
+    subscribedAt: Date.now()
+    });
+    console.log('✅ Player ID сохранен');
+    } catch (e) {
+    console.error('❌ Ошибка сохранения Player ID:', e);
+    }
+    }, 3000);
+    }
+    };
+
+    // Перехватываем отправку сообщений
+    const originalSendMessage = sendMessage;
+    sendMessage = async function () {
+    const text = messageText?.value.trim();
+    const receiver = currentChat;
+
+    await originalSendMessage();
+
+    if (currentChatType === 'user' && text && receiver && receiver !== currentUser) {
+    setTimeout(() => {
+    sendPushNotification(receiver, currentUser, text);
+    }, 500);
+    }
+    };
+    // ==================== СИСТЕМА КОММЕНТАРИЕВ ДЛЯ КАНАЛОВ ====================
+
+    // Переменные для комментариев
+    let currentChannelForComments = null;
+    let commentsListeners = {};
+
+    // Функция для открытия модального окна комментариев
+    async function openChannelComments(channelId) {
+    currentChannelForComments = channelId;
+
+    // Загружаем информацию о канале
+    const channel = channels.find(c => c.id === channelId);
+    if (!channel) return;
+
+    const modal = document.getElementById('channel-comments-modal');
+    const title = document.getElementById('comments-modal-title');
+    title.textContent = `Комментарии к каналу "${channel.name}"`;
+
+    modal.classList.add('active');
+
+    // Загружаем комментарии
+    await loadComments(channelId);
+
+    // Очищаем поле ввода
+    document.getElementById('comment-input').value = '';
+    document.getElementById('comment-input').focus();
+
+    // Начинаем слушать новые комментарии в реальном времени
+    listenForNewComments(channelId);
+    }
+
+    // Закрытие модального окна комментариев
+    function closeChannelComments() {
+    const modal = document.getElementById('channel-comments-modal');
+    modal.classList.remove('active');
+
+    // Отключаем слушатель
+    if (currentChannelForComments && commentsListeners[currentChannelForComments]) {
+    commentsListeners[currentChannelForComments]();
+    delete commentsListeners[currentChannelForComments];
+    }
+
+    currentChannelForComments = null;
+    }
+
+    // Загрузка комментариев
+    async function loadComments(channelId, limit = 20, lastCommentId = null) {
+    try {
+    let query = database.ref('channelComments/' + channelId).orderByChild('timestamp');
+
+    if (lastCommentId) {
+    const lastCommentSnapshot = await database.ref('channelComments/' + channelId + '/' + lastCommentId).once('value');
+    const lastComment = lastCommentSnapshot.val();
+    if (lastComment) {
+    query = query.endAt(lastComment.timestamp).limitToLast(limit + 1);
+    }
+    } else {
+    query = query.limitToLast(limit);
+    }
+
+    const snapshot = await query.once('value');
+    const comments = snapshot.val();
+
+    displayComments(comments, channelId, limit, lastCommentId);
+    } catch (error) {
+    console.error('Ошибка загрузки комментариев:', error);
+    document.getElementById('comments-container').innerHTML = '<div
+        style="text-align: center; color: var(--danger-color); padding: 20px;">Ошибка загрузки комментариев</div>';
+    }
+    }
+
+    // Отображение комментариев
+    function displayComments(comments, channelId, limit, lastCommentId) {
+    const container = document.getElementById('comments-container');
+
+    if (!comments || Object.keys(comments).length === 0) {
+    container.innerHTML = '<div style="text-align: center; color: var(--text-light); padding: 20px;">💬 Пока нет
+        комментариев. Будьте первым!</div>';
+    return;
+    }
+
+    // Преобразуем в массив и сортируем по времени (новые внизу)
+    const commentsArray = Object.entries(comments)
+    .map(([id, comment]) => ({ id, ...comment }))
+    .filter(comment => !comment.parentId) // Только основные комментарии, без ответов
+    .sort((a, b) => a.timestamp - b.timestamp);
+
+    let html = '';
+
+    if (commentsArray.length === limit && !lastCommentId) {
+    html += '<div class="load-more-comments" id="load-more-comments">⬆️ Загрузить предыдущие комментарии</div>';
+    }
+
+    commentsArray.forEach(comment => {
+    html += renderComment(comment, channelId);
+
+    // Добавляем ответы, если есть
+    if (comment.replies) {
+    const replies = Object.entries(comment.replies)
+    .map(([id, reply]) => ({ id, ...reply }))
+    .sort((a, b) => a.timestamp - b.timestamp);
+
+    if (replies.length > 0) {
+    html += '<div class="replies-container">';
+        replies.forEach(reply => {
+        html += renderReply(reply, channelId, comment.id);
+        });
+        html += '</div>';
+    }
+    }
+    });
+
+    container.innerHTML = html;
+
+    // Добавляем обработчик для загрузки предыдущих комментариев
+    const loadMoreBtn = document.getElementById('load-more-comments');
+    if (loadMoreBtn) {
+    loadMoreBtn.onclick = () => loadMoreComments(channelId, commentsArray[0]?.id);
+    }
+    }
+
+    // Рендер отдельного комментария
+    function renderComment(comment, channelId) {
+    const date = new Date(comment.timestamp).toLocaleString('ru-RU', {
+    day: 'numeric',
+    month: 'short',
+    hour: '2-digit',
+    minute: '2-digit'
+    });
+
+    const isLiked = comment.likes && comment.likes[currentUser];
+    const likeCount = comment.likes ? Object.keys(comment.likes).length : 0;
+
+    return `
+    <div class="comment-item" data-comment-id="${comment.id}">
+        <div class="comment-header">
+            <div class="comment-author" onclick="openUserProfile('${comment.author}')">
+                <span class="comment-author-emoji">${comment.authorEmoji || '👤'}</span>
+                <span>${comment.authorName || comment.author}</span>
+            </div>
+            <div class="comment-time">${date}</div>
+        </div>
+        <div class="comment-text">${escapeHtml(comment.text)}</div>
+        <div class="comment-actions">
+            <button class="comment-action-btn like-btn ${isLiked ? 'liked' : ''}"
+                onclick="toggleCommentLike('${channelId}', '${comment.id}')">
+                ❤️ ${likeCount > 0 ? likeCount : ''}
+            </button>
+            <button class="comment-action-btn reply-btn" onclick="showReplyForm('${channelId}', '${comment.id}')">
+                💬 Ответить
+            </button>
+            ${comment.author === currentUser ? `
+            <button class="comment-action-btn" onclick="deleteComment('${channelId}', '${comment.id}')">
+                🗑️ Удалить
+            </button>
+            ` : ''}
+        </div>
+        <div class="reply-form" id="reply-form-${comment.id}" style="display: none;">
+            <input type="text" class="reply-input" id="reply-input-${comment.id}" placeholder="Ваш ответ...">
+            <button class="reply-send-btn" onclick="sendReply('${channelId}', '${comment.id}')">Отправить</button>
+        </div>
+    </div>
+    `;
+    }
+
+    // Рендер ответа на комментарий
+    function renderReply(reply, channelId, commentId) {
+    const date = new Date(reply.timestamp).toLocaleString('ru-RU', {
+    day: 'numeric',
+    month: 'short',
+    hour: '2-digit',
+    minute: '2-digit'
+    });
+
+    return `
+    <div class="reply-item" data-reply-id="${reply.id}">
+        <div class="reply-header">
+            <div class="reply-author" onclick="openUserProfile('${reply.author}')">
+                <span>${reply.authorEmoji || '👤'}</span>
+                <span>${reply.authorName || reply.author}</span>
+            </div>
+            <div class="comment-time">${date}</div>
+            ${reply.author === currentUser ? `
+            <button class="comment-action-btn" onclick="deleteReply('${channelId}', '${commentId}', '${reply.id}')"
+                style="margin-left: auto;">🗑️</button>
+            ` : ''}
+        </div>
+        <div class="reply-text">${escapeHtml(reply.text)}</div>
+    </div>
+    `;
+    }
+
+    // Отправка нового комментария
+    async function sendComment() {
+    const input = document.getElementById('comment-input');
+    const text = input.value.trim();
+
+    if (!text || !currentChannelForComments) return;
+
+    try {
+    // Получаем данные автора
+    const userSnapshot = await database.ref('users/' + encodeURIComponent(currentUser)).once('value');
+    const userData = userSnapshot.val();
+
+    const comment = {
+    author: currentUser,
+    authorName: userData ? userData.name : currentUser,
+    authorEmoji: userData ? userData.emoji : '👤',
+    text: text,
+    timestamp: Date.now(),
+    likes: {}
+    };
+
+    await database.ref('channelComments/' + currentChannelForComments).push(comment);
+
+    input.value = '';
+
+    // Уведомляем создателя канала о новом комментарии
+    const channel = channels.find(c => c.id === currentChannelForComments);
+    if (channel && channel.creator !== currentUser) {
+    sendNotificationToUser(channel.creator, {
+    type: 'new_comment',
+    channelName: channel.name,
+    channelId: currentChannelForComments,
+    author: currentUser,
+    text: text
+    });
+    }
+    } catch (error) {
+    showNotification('Ошибка: ' + error.message);
+    }
+    }
+
+    // Отправка ответа на комментарий
+    async function sendReply(channelId, commentId) {
+    const input = document.getElementById('reply-input-' + commentId);
+    const text = input.value.trim();
+
+    if (!text) return;
+
+    try {
+    const userSnapshot = await database.ref('users/' + encodeURIComponent(currentUser)).once('value');
+    const userData = userSnapshot.val();
+
+    const reply = {
+    author: currentUser,
+    authorName: userData ? userData.name : currentUser,
+    authorEmoji: userData ? userData.emoji : '👤',
+    text: text,
+    timestamp: Date.now()
+    };
+
+    await database.ref('channelComments/' + channelId + '/' + commentId + '/replies').push(reply);
+
+    // Скрываем форму
+    document.getElementById('reply-form-' + commentId).style.display = 'none';
+
+    // Уведомляем автора комментария об ответе
+    const commentSnapshot = await database.ref('channelComments/' + channelId + '/' + commentId).once('value');
+    const comment = commentSnapshot.val();
+    if (comment && comment.author !== currentUser) {
+    const channel = channels.find(c => c.id === channelId);
+    sendNotificationToUser(comment.author, {
+    type: 'reply_to_comment',
+    channelName: channel ? channel.name : 'канале',
+    channelId: channelId,
+    author: currentUser,
+    text: text
+    });
+    }
+    } catch (error) {
+    showNotification('Ошибка: ' + error.message);
+    }
+    }
+
+    // Показать форму ответа
+    function showReplyForm(channelId, commentId) {
+    const form = document.getElementById('reply-form-' + commentId);
+    form.style.display = 'flex';
+    document.getElementById('reply-input-' + commentId).focus();
+    }
+
+    // Лайк/дизлайк комментария
+    async function toggleCommentLike(channelId, commentId) {
+    try {
+    const likeRef = database.ref('channelComments/' + channelId + '/' + commentId + '/likes/' + currentUser);
+    const snapshot = await likeRef.once('value');
+
+    if (snapshot.exists()) {
+    await likeRef.remove();
+    } else {
+    await likeRef.set(true);
+
+    // Уведомление о лайке
+    const commentSnapshot = await database.ref('channelComments/' + channelId + '/' + commentId).once('value');
+    const comment = commentSnapshot.val();
+    if (comment && comment.author !== currentUser) {
+    const channel = channels.find(c => c.id === channelId);
+    sendNotificationToUser(comment.author, {
+    type: 'like_comment',
+    channelName: channel ? channel.name : 'канале',
+    author: currentUser
+    });
+    }
+    }
+
+    // Перезагружаем комментарии
+    await loadComments(channelId);
+    } catch (error) {
+    showNotification('Ошибка: ' + error.message);
+    }
+    }
+
+    // Удаление комментария
+    async function deleteComment(channelId, commentId) {
+    if (!confirm('Удалить этот комментарий?')) return;
+
+    try {
+    await database.ref('channelComments/' + channelId + '/' + commentId).remove();
+    await loadComments(channelId);
+    } catch (error) {
+    showNotification('Ошибка: ' + error.message);
+    }
+    }
+
+    // Удаление ответа
+    async function deleteReply(channelId, commentId, replyId) {
+    if (!confirm('Удалить этот ответ?')) return;
+
+    try {
+    await database.ref('channelComments/' + channelId + '/' + commentId + '/replies/' + replyId).remove();
+    await loadComments(channelId);
+    } catch (error) {
+    showNotification('Ошибка: ' + error.message);
+    }
+    }
+
+    // Загрузка предыдущих комментариев
+    async function loadMoreComments(channelId, lastCommentId) {
+    await loadComments(channelId, 20, lastCommentId);
+    }
+
+    // Слушаем новые комментарии в реальном времени
+    function listenForNewComments(channelId) {
+    if (commentsListeners[channelId]) {
+    commentsListeners[channelId]();
+    }
+
+    const callback = database.ref('channelComments/' + channelId).on('child_added', (snapshot) => {
+    // Если модальное окно открыто для этого канала, обновляем
+    if (currentChannelForComments === channelId) {
+    loadComments(channelId);
+    }
+    });
+
+    commentsListeners[channelId] = () => {
+    database.ref('channelComments/' + channelId).off('child_added', callback);
+    };
+    }
+
+    // Вспомогательная функция для отправки уведомлений
+    async function sendNotificationToUser(username, notification) {
+    try {
+    await database.ref('users/' + encodeURIComponent(username) + '/notifications').push({
+    ...notification,
+    timestamp: Date.now(),
+    read: false
+    });
+    } catch (error) {
+    console.error('Ошибка отправки уведомления:', error);
+    }
+    }
+
+    // Добавляем кнопку комментариев в заголовок канала
+    function addCommentsButtonToChannelHeader() {
+    const headerActions = document.querySelector('.chat-header-actions');
+    if (!headerActions) return;
+
+    // Удаляем старую кнопку если есть
+    const oldBtn = document.getElementById('channel-comments-btn');
+    if (oldBtn) oldBtn.remove();
+
+    // Создаем новую кнопку
+    const commentsBtn = document.createElement('button');
+    commentsBtn.id = 'channel-comments-btn';
+    commentsBtn.className = 'chat-header-btn';
+    commentsBtn.innerHTML = '💬';
+    commentsBtn.title = 'Комментарии к каналу';
+    commentsBtn.style.display = 'none';
+
+    commentsBtn.addEventListener('click', () => {
+    if (currentChannel && currentChatType === 'channel') {
+    openChannelComments(currentChannel.id);
+    }
+    });
+
+    headerActions.appendChild(commentsBtn);
+    }
+
+    // Обновляем отображение кнопки комментариев при открытии канала
+    const originalOpenChannelChat = openChannelChat;
+    openChannelChat = function (channelId, channelName) {
+    originalOpenChannelChat(channelId, channelName);
+
+    // Показываем кнопку комментариев
+    const commentsBtn = document.getElementById('channel-comments-btn');
+    if (commentsBtn) {
+    commentsBtn.style.display = 'block';
+    }
+    };
+
+    // Добавляем обработчики событий
+    document.addEventListener('DOMContentLoaded', () => {
+    addCommentsButtonToChannelHeader();
+
+    // Закрытие модального окна
+    document.getElementById('close-comments-modal').addEventListener('click', closeChannelComments);
+
+    // Отправка комментария по Enter
+    document.getElementById('comment-input').addEventListener('keypress', (e) => {
+    if (e.key === 'Enter') {
+    e.preventDefault();
+    sendComment();
+    }
+    });
+
+    // Отправка комментария по кнопке
+    document.getElementById('send-comment-btn').addEventListener('click', sendComment);
+
+    // Закрытие по клику на фон
+    document.getElementById('channel-comments-modal').addEventListener('click', (e) => {
+    if (e.target === document.getElementById('channel-comments-modal')) {
+    closeChannelComments();
+    }
+    });
+    });
+
+    // Делаем функции глобальными
+    window.openUserProfile = openUserProfile;
+    window.toggleCommentLike = toggleCommentLike;
+    window.showReplyForm = showReplyForm;
+    window.sendReply = sendReply;
+    window.deleteComment = deleteComment;
+    window.deleteReply = deleteReply;
+    // Тестовая функция для проверки PUSH
+    window.testPush = async function() {
+    console.log('🔍 Тестирование PUSH уведомлений...');
+
+    if (!currentUser) {
+    alert('Сначала войдите в систему');
+    return;
+    }
+
+    if (!window.OneSignal) {
+    alert('OneSignal не загружен!');
+    return;
+    }
+
+    try {
+    const playerId = await OneSignal.User.pushSubscription.id;
+    console.log('📱 Ваш Player ID:', playerId);
+
+    if (playerId) {
+    alert('Player ID: ' + playerId + '\n\nПроверьте консоль (F12)');
+
+    // Тестовая отправка
+    await sendPushNotification(currentUser, 'system', '🔔 Тестовое уведомление');
+    } else {
+    alert('Player ID не получен. Проверьте разрешения на уведомления.');
+    }
+    } catch (e) {
+    console.error('❌ Ошибка:', e);
+    alert('Ошибка: ' + e.message);
+    }
+    };
+
+    // Запустить тест можно командой в консоли: testPush()
     </script>
 
 </html>
