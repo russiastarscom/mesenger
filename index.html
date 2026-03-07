@@ -8131,66 +8131,125 @@
             }
             lastScrollTop = currentScroll;
         }, { passive: false });
-        
-        // ==================== PUSH-УВЕДОМЛЕНИЯ ONESIGNAL ====================
-window.OneSignalDeferred = window.OneSignalDeferred || [];
+        <!-- ==================== PUSH-УВЕДОМЛЕНИЯ ONESIGNAL ==================== -->
+<script src="https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js" defer></script>
+<script>
+    // Инициализация OneSignal после загрузки страницы
+    window.addEventListener('load', function() {
+        // Проверяем, что OneSignal загрузился
+        if (window.OneSignal) {
+            initOneSignal();
+        } else {
+            // Если еще не загрузился, ждем
+            window.OneSignal = window.OneSignal || [];
+            window.OneSignal.push(initOneSignal);
+        }
+    });
 
-// Инициализация OneSignal
-OneSignalDeferred.push(async function (OneSignal) {
-    console.log('🔄 Инициализация OneSignal...');
+    async function initOneSignal() {
+        console.log('🔄 Инициализация OneSignal...');
 
-    try {
-        await OneSignal.init({
-            appId: "3ffd17da-2e0f-4504-ab59-47e15e39f5d2",
-            safari_web_id: "web.onesignal.auto.6a13c381-7602-4e1d-b2a0-1098f769d9cc",
-            notifyButton: {
-                enable: true,
-                size: 'medium',
-                showCredit: false,
-                text: {
-                    'tap-to-subscribe': 'Подписаться на уведомления',
-                    'subscribe': 'Подписаться',
-                    'unsubscribe': 'Отписаться'
-                }
-            },
-            autoRegister: true,
-            autoResubscribe: true,
-            persistNotification: true,
-            welcomeNotification: {
-                title: "Twin",
-                message: "Уведомления включены! 🔔",
-                url: window.location.origin
-            },
-            // Убираем serviceWorkerPath - OneSignal сам найдет нужный путь
-            allowLocalhostAsSecureOrigin: true,
-        });
+        try {
+            await OneSignal.init({
+                appId: "3ffd17da-2e0f-4504-ab59-47e15e39f5d2",
+                safari_web_id: "web.onesignal.auto.6a13c381-7602-4e1d-b2a0-1098f769d9cc",
+                notifyButton: {
+                    enable: false, // Отключаем стандартную кнопку, используем свою
+                },
+                autoRegister: false, // Не регистрировать автоматически
+                autoResubscribe: true,
+                persistNotification: true,
+                welcomeNotification: {
+                    title: "Twin",
+                    message: "Уведомления включены! 🔔",
+                },
+                // Указываем правильные пути для service worker
+                serviceWorkerParam: { scope: '/mesenger/' },
+                serviceWorkerPath: '/mesenger/OneSignalSDKWorker.js',
+            });
 
-        console.log('✅ OneSignal инициализирован успешно');
+            console.log('✅ OneSignal инициализирован успешно');
 
-        // Если пользователь авторизован, сохраняем его ID
-        if (currentUser) {
-            setTimeout(async () => {
-                try {
-                    const playerId = await OneSignal.User.pushSubscription.id;
-                    if (playerId) {
-                        console.log('📱 Player ID получен:', playerId);
-                        await database.ref('users/' + encodeURIComponent(currentUser) + '/onesignal').set({
-                            playerId: playerId,
-                            subscribed: true,
-                            subscribedAt: Date.now(),
-                            userAgent: navigator.userAgent
-                        });
+            // Если пользователь авторизован, сохраняем его ID
+            if (currentUser) {
+                setTimeout(async () => {
+                    try {
+                        const isOptedIn = await OneSignal.User.PushSubscription.optedIn;
+                        if (isOptedIn) {
+                            const playerId = await OneSignal.User.PushSubscription.id;
+                            if (playerId) {
+                                console.log('📱 Player ID получен:', playerId);
+                                await database.ref('users/' + encodeURIComponent(currentUser) + '/onesignal').set({
+                                    playerId: playerId,
+                                    subscribed: true,
+                                    subscribedAt: Date.now(),
+                                    userAgent: navigator.userAgent
+                                });
+                            }
+                        }
+                    } catch (e) {
+                        console.error('❌ Ошибка сохранения Player ID:', e);
                     }
-                } catch (e) {
-                    console.error('❌ Ошибка сохранения Player ID:', e);
-                }
-            }, 5000);
+                }, 3000);
+            }
+
+        } catch (error) {
+            console.error('❌ Ошибка инициализации OneSignal:', error);
+        }
+    }
+
+    // Функция для подписки на уведомления (можно вызвать из интерфейса)
+    window.subscribeToNotifications = async function() {
+        if (!window.OneSignal) {
+            showNotification('OneSignal еще не загружен');
+            return;
         }
 
-    } catch (error) {
-        console.error('❌ Ошибка инициализации OneSignal:', error);
-    }
-});
+        try {
+            await OneSignal.Notifications.requestPermission();
+            const isSubscribed = await OneSignal.User.PushSubscription.optedIn;
+            
+            if (isSubscribed) {
+                showNotification('✅ Вы подписаны на уведомления!');
+                
+                // Сохраняем playerId в Firebase
+                if (currentUser) {
+                    const playerId = await OneSignal.User.PushSubscription.id;
+                    await database.ref('users/' + encodeURIComponent(currentUser) + '/onesignal').set({
+                        playerId: playerId,
+                        subscribed: true,
+                        subscribedAt: Date.now()
+                    });
+                }
+            }
+        } catch (error) {
+            console.error('Ошибка подписки:', error);
+            showNotification('❌ Не удалось подписаться на уведомления');
+        }
+    };
 
+    // Добавляем кнопку подписки в настройки профиля
+    function addNotificationSubscribeButton() {
+        const profileSettingsActions = document.querySelector('#profile-settings-modal .modal-actions');
+        if (!profileSettingsActions) return;
+        if (document.getElementById('onesignal-subscribe-btn')) return;
+
+        const subscribeBtn = document.createElement('button');
+        subscribeBtn.id = 'onesignal-subscribe-btn';
+        subscribeBtn.className = 'modal-btn';
+        subscribeBtn.innerHTML = '🔔 Включить уведомления';
+        subscribeBtn.style.background = '#2ecc71';
+        subscribeBtn.style.color = 'white';
+        subscribeBtn.style.marginRight = '5px';
+
+        subscribeBtn.addEventListener('click', window.subscribeToNotifications);
+
+        profileSettingsActions.insertBefore(subscribeBtn, profileSettingsActions.firstChild);
+    }
+
+    // Добавляем кнопку после загрузки профиля
+    setTimeout(addNotificationSubscribeButton, 2000);
+</script>
+        
     </script>
 </html>
