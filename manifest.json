@@ -2,8 +2,8 @@
   "name": "Twin",
   "short_name": "Twin",
   "description": "Приложение для общения и обмена подарками",
-  "start_url": "/",
-  "scope": "/",
+  "start_url": "index.html",
+  "scope": ".",
   "display": "standalone",
   "orientation": "portrait-primary",
   "background_color": "#ffffff",
@@ -27,7 +27,7 @@
       "name": "Сообщения",
       "short_name": "Сообщения",
       "description": "Открыть сообщения",
-      "url": "/index.html",
+      "url": "index.html",
       "icons": [
         {
           "src": "icon-192x192.png",
